@@ -14,10 +14,12 @@ plugins {
     id 'application'
 }
 
-repositories {
-    // Use jcenter for resolving dependencies.
-    // You can declare any Maven/Ivy/file repository here.
-    jcenter()
+allprojects {
+    repositories {
+        // Use jcenter for resolving dependencies.
+        // You can declare any Maven/Ivy/file repository here.
+        jcenter()
+    }
 }
 
 dependencies {
@@ -39,4 +41,7 @@ application {
 test {
     // Use junit platform for unit tests
     useJUnitPlatform()
+}
+
+project(':common') {
 }
