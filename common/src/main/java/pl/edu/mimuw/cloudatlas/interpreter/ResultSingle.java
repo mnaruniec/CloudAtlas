@@ -33,12 +33,25 @@ class ResultSingle extends Result {
 	private final Value value;
 
 	public ResultSingle(Value value) {
+		if (value == null) {
+			throw new InternalInterpreterException("Attempting to create ResultSingle with null Value");
+		}
 		this.value = value;
 	}
-	
+
 	@Override
 	protected ResultSingle binaryOperationTyped(BinaryOperation operation, ResultSingle right) {
 		return new ResultSingle(operation.perform(value, right.value));
+	}
+
+	@Override
+	protected ResultList binaryOperationTyped(BinaryOperation operation, ResultList right) {
+		return right.unaryOperation(r -> operation.perform(this.value, r));
+	}
+
+	@Override
+	protected ResultColumn binaryOperationTyped(BinaryOperation operation, ResultColumn right) {
+		return right.unaryOperation(r -> operation.perform(this.value, r));
 	}
 
 	@Override
@@ -67,22 +80,22 @@ class ResultSingle extends Result {
 	}
 
 	@Override
-	public Result filterNulls() {
+	public ResultList filterNulls() {
 		throw new UnsupportedOperationException("Operation filterNulls not supported on ResultSingle.");
 	}
 
 	@Override
-	public Result first(int size) {
+	public ResultSingle first(int size) {
 		throw new UnsupportedOperationException("Operation first not supported on ResultSingle.");
 	}
 
 	@Override
-	public Result last(int size) {
+	public ResultSingle last(int size) {
 		throw new UnsupportedOperationException("Operation last not supported on ResultSingle.");
 	}
 
 	@Override
-	public Result random(int size) {
+	public ResultSingle random(int size) {
 		throw new UnsupportedOperationException("Operation random not supported on ResultSingle.");
 	}
 

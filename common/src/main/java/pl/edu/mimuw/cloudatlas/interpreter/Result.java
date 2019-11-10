@@ -135,6 +135,10 @@ abstract class Result {
 
 	protected abstract Result binaryOperationTyped(BinaryOperation operation, ResultSingle right);
 
+	protected abstract Result binaryOperationTyped(BinaryOperation operation, ResultList right);
+
+	protected abstract Result binaryOperationTyped(BinaryOperation operation, ResultColumn right);
+
 	public Result binaryOperation(BinaryOperation operation, Result right) {
 		return right.callMe(operation, this);
 	}
@@ -150,13 +154,13 @@ abstract class Result {
 	public abstract ValueList getColumn();
 
 	public ResultSingle aggregationOperation(AggregationOperation operation) {
-		// TODO
-		throw new UnsupportedOperationException("Not yet implemented");
+		ValueList values = getList();
+		return new ResultSingle(operation.perform(values));
 	}
 
-	public Result transformOperation(TransformOperation operation) {
-		// TODO
-		throw new UnsupportedOperationException("Not yet implemented");
+	public ResultList transformOperation(TransformOperation operation) {
+		ValueList values = getList();
+		return new ResultList(operation.perform(values));
 	}
 
 	public Result isEqual(Result right) {
@@ -217,7 +221,7 @@ abstract class Result {
 		return new ValueList(result.isEmpty()? null : result, ((TypeCollection)list.getType()).getElementType());
 	}
 
-	public abstract Result filterNulls();
+	public abstract ResultList filterNulls();
 
 	protected static ValueList firstList(ValueList list, int size) {
 		ValueList nlist = filterNullsList(list);
@@ -233,7 +237,7 @@ abstract class Result {
 		return new ValueList(result, ((TypeCollection)list.getType()).getElementType());
 	}
 
-	public abstract Result first(int size);
+	public abstract ResultSingle first(int size);
 
 	protected static ValueList lastList(ValueList list, int size) {
 		ValueList nlist = filterNullsList(list);
@@ -245,7 +249,7 @@ abstract class Result {
 		return new ValueList(result, ((TypeCollection)list.getType()).getElementType());
 	}
 
-	public abstract Result last(int size);
+	public abstract ResultSingle last(int size);
 
 	protected static ValueList randomList(ValueList list, int size) {
 		ValueList nlist = filterNullsList(list);
@@ -255,7 +259,7 @@ abstract class Result {
 		return new ValueList(nlist.getValue().subList(0, size), ((TypeCollection)list.getType()).getElementType());
 	}
 
-	public abstract Result random(int size);
+	public abstract ResultSingle random(int size);
 
 	public abstract Result convertTo(Type to);
 
