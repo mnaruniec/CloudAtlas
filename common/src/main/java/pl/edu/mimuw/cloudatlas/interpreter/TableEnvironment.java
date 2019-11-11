@@ -24,6 +24,14 @@
 
 package pl.edu.mimuw.cloudatlas.interpreter;
 
-interface Environment {
-	Result getIdent(String ident);
+class TableEnvironment implements Environment {
+	private Table table;
+
+	public TableEnvironment(Table table) {
+		this.table = table;
+	}
+
+	public Result getIdent(String ident) {
+		return new ResultColumn(table.getColumn(ident));
+	}
 }

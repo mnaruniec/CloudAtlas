@@ -24,6 +24,28 @@
 
 package pl.edu.mimuw.cloudatlas.interpreter;
 
-interface Environment {
-	Result getIdent(String ident);
+import pl.edu.mimuw.cloudatlas.model.ValueNull;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+class RowEnvironment implements Environment {
+	private final TableRow row;
+	private final Map<String, Integer> columns = new HashMap<String, Integer>();
+
+	public RowEnvironment(TableRow row, List<String> columns) {
+		this.row = row;
+		int i = 0;
+		for(String c : columns)
+			this.columns.put(c, i++);
+	}
+
+	public Result getIdent(String ident) {
+		try {
+			return new ResultSingle(row.getIth(columns.get(ident)));
+		} catch(NullPointerException exception) {
+			return new ResultSingle(ValueNull.getInstance());
+		}
+	}
 }
