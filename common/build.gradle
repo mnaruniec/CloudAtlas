@@ -16,3 +16,8 @@ test {
     // Use junit platform for unit tests
     useJUnitPlatform()
 }
+
+application {
+    applicationName = 'interpreter'
+    mainClassName = 'pl.edu.mimuw.cloudatlas.interpreter.Main'
+}
