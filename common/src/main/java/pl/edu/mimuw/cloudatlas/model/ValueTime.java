@@ -28,9 +28,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-import pl.edu.mimuw.cloudatlas.model.Value;
-import pl.edu.mimuw.cloudatlas.model.ValueTime;
-
 /**
  * A class representing the POSIX time in milliseconds. This is a simple wrapper of a Java <code>Long</code> object.
  */
@@ -57,7 +54,7 @@ public class ValueTime extends ValueSimple<Long> {
 	
 	@Override
 	public Value getDefaultValue() {
-		return new ValueTime(0l);
+		return new ValueTime(0L);
 	}
 	
 	/**
