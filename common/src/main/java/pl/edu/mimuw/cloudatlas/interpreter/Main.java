@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
 
+import pl.edu.mimuw.cloudatlas.interpreter.query.Absyn.Program;
 import pl.edu.mimuw.cloudatlas.interpreter.query.Yylex;
 import pl.edu.mimuw.cloudatlas.interpreter.query.parser;
 import pl.edu.mimuw.cloudatlas.model.PathName;
@@ -73,13 +74,16 @@ public class Main {
 			Interpreter interpreter = new Interpreter(zmi);
 			Yylex lex = new Yylex(new ByteArrayInputStream(query.getBytes()));
 			try {
-				List<QueryResult> result = interpreter.interpretProgram((new parser(lex)).pProgram());
+				Program program = (new parser(lex)).pProgram();
+				List<QueryResult> result = interpreter.interpretProgram(program);
 				PathName zone = getPathName(zmi);
 				for(QueryResult r : result) {
 					System.out.println(zone + ": " + r);
 					zmi.getAttributes().addOrChange(r.getName(), r.getValue());
 				}
-			} catch(InterpreterException exception) {}
+			} catch(InterpreterException exception) {
+//				System.out.println("Interpreter exception occurred: " + exception.getMessage());
+			}
 		}
 	}
 	
