@@ -1,0 +1,12 @@
+#!/bin/sh
+
+NUM_TESTS=19
+TEST_DIR=interpreter_tests
+
+for i in `seq $NUM_TESTS`; do
+	echo "Running test $i..."
+	./run_lab_interpreter < "$TEST_DIR/$i.in" > tmp.out
+	diff tmp.out "$TEST_DIR/$i.out"
+	echo
+	rm tmp.out
+done
