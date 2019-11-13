@@ -35,8 +35,12 @@ test {
 project(':common') {
 }
 
+project(':agent') {
+}
+
 build {
     dependsOn {
-        project(':common').tasks.installDist
+//        project(':common').tasks.installDist
+        project(':agent').tasks.installDist
     }
 }

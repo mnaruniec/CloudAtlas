@@ -1,0 +1,22 @@
+
+plugins {
+    // Apply the java plugin to add support for Java
+    id 'java'
+
+    // Apply the application plugin to add support for building a CLI application
+    id 'application'
+}
+
+dependencies {
+    implementation project(':common')
+}
+
+test {
+    // Use junit platform for unit tests
+    useJUnitPlatform()
+}
+
+application {
+    applicationName = 'agent'
+    mainClassName = 'pl.edu.mimuw.cloudatlas.agent.Agent'
+}
