@@ -1,0 +1,3 @@
+#!/bin/sh
+
+../common/build/install/interpreter/bin/interpreter
