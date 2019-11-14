@@ -24,32 +24,91 @@
 
 package pl.edu.mimuw.cloudatlas.agent;
 
-import pl.edu.mimuw.cloudatlas.agent.api.AgentAPI;
 import pl.edu.mimuw.cloudatlas.agent.api.IAgentAPI;
-import pl.edu.mimuw.cloudatlas.model.Type;
-import pl.edu.mimuw.cloudatlas.model.TypeCollection;
+import pl.edu.mimuw.cloudatlas.model.PathName;
+import pl.edu.mimuw.cloudatlas.model.TypePrimitive;
 import pl.edu.mimuw.cloudatlas.model.Value;
-import pl.edu.mimuw.cloudatlas.model.ValueList;
+import pl.edu.mimuw.cloudatlas.model.ValueContact;
+import pl.edu.mimuw.cloudatlas.model.ValueSet;
+import pl.edu.mimuw.cloudatlas.model.ValueString;
+import pl.edu.mimuw.cloudatlas.model.ZMI;
 
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
+import java.rmi.RemoteException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public class Agent {
-	public static void main(String[] args) {
-		if (System.getSecurityManager() == null) {
-			System.setSecurityManager(new SecurityManager());
+public class Agent implements IAgentAPI {
+	private ZMI root;
+	private ReadWriteLock treeLock = new ReentrantReadWriteLock();
+	private Map<String, ZMI> zmiIndex = new HashMap<>();
+	private ValueSet fallbackContacts = new ValueSet(TypePrimitive.CONTACT);
+
+	public Agent(ZMI root) {
+		if (root == null) {
+			throw new IllegalArgumentException();
 		}
+		this.root = root;
+		buildIndex(this.root, PathName.ROOT);
+	}
+
+	private void buildIndex(ZMI zmi, PathName path) {
+		for (ZMI son: zmi.getSons()) {
+			buildIndex(son, path.levelDown(son.getName()));
+		}
+		zmiIndex.put(path.toString(), zmi);
+	}
+
+	@Override
+	public Set<String> getStoredZones() throws RemoteException {
+		treeLock.readLock().lock();
 		try {
-			AgentAPI api = new AgentAPI();
-			IAgentAPI stub =
-					(IAgentAPI) UnicastRemoteObject.exportObject(api, 0);
-			Registry registry = LocateRegistry.getRegistry();
-			registry.rebind("AgentAPI", stub);
-			System.out.println("AgentAPI bound");
-		} catch (Exception e) {
-			System.err.println("Agent exception:");
-			e.printStackTrace();
+			return new HashSet<String>(zmiIndex.keySet());
+		} finally {
+			treeLock.readLock().unlock();
 		}
+	}
+
+	@Override
+	public Map<String, Value> getZoneAttributes(String zone) throws RemoteException, NoSuchZoneException {
+		treeLock.readLock().lock();
+		try {
+			ZMI zmi = zmiIndex.get(zone);
+			if (zmi == null) {
+				throw new NoSuchZoneException("Zone '" + zone + "' not found.");
+			}
+			return zmi.getAttributes().toMap();
+		} finally {
+			treeLock.readLock().unlock();
+		}
+	}
+
+	@Override
+	public void upsertZoneAttributes(String zone, Map<String, Value> attributes) throws RemoteException {
+
+	}
+
+	@Override
+	public void installQuery(String name, String query) throws RemoteException {
+
+	}
+
+	@Override
+	public void uninstallQuery(String name) throws RemoteException {
+
+	}
+
+	@Override
+	public void setFallbackContacts(Set<ValueContact> contacts) throws RemoteException {
+		this.fallbackContacts = new ValueSet((Set)contacts, TypePrimitive.CONTACT);
+	}
+
+	@Override
+	public Set<ValueContact> getFallbackContacts() throws RemoteException {
+		return (Set)fallbackContacts;
 	}
 }

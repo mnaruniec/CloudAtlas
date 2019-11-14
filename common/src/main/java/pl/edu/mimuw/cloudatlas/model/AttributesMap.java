@@ -24,6 +24,7 @@
 
 package pl.edu.mimuw.cloudatlas.model;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -278,5 +279,13 @@ public class AttributesMap implements Iterable<Entry<Attribute, Value>>, Cloneab
 	@Override
 	public String toString() {
 		return map.toString();
+	}
+
+	public Map<String, Value> toMap() {
+		Map<String, Value> result = new HashMap<>();
+		for (Entry<Attribute, Value> entry: map.entrySet()) {
+			result.put(entry.getKey().getName(), entry.getValue());
+		}
+		return result;
 	}
 }

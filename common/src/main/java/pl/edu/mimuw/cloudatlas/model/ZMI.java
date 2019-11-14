@@ -35,6 +35,8 @@ import java.util.Map.Entry;
  * references to its father and sons in the tree.
  */
 public class ZMI implements Cloneable {
+	public static final Attribute NAME_ATTR = new Attribute("name");
+
 	private final AttributesMap attributes = new AttributesMap();
 	
 	private final List<ZMI> sons = new ArrayList<ZMI>();
@@ -162,5 +164,9 @@ public class ZMI implements Cloneable {
 	@Override
 	public String toString() {
 		return attributes.toString();
+	}
+
+	public String getName() {
+		return ((ValueString)getAttributes().get(ZMI.NAME_ATTR)).getValue();
 	}
 }

@@ -18,7 +18,7 @@ test {
 
 application {
     applicationName = 'agent'
-    mainClassName = 'pl.edu.mimuw.cloudatlas.agent.Agent'
+    mainClassName = 'pl.edu.mimuw.cloudatlas.agent.AgentMain'
     applicationDefaultJvmArgs = [
             '-Djava.security.policy=./server.policy',
             '-Djava.rmi.server.codebase=file://' + buildDir + '/install/agent/lib/agent.jar',

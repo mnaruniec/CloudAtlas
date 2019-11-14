@@ -24,6 +24,7 @@
 
 package pl.edu.mimuw.cloudatlas.agent.api;
 
+import pl.edu.mimuw.cloudatlas.agent.NoSuchZoneException;
 import pl.edu.mimuw.cloudatlas.model.Value;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
 
@@ -34,9 +35,9 @@ import java.util.Map;
 import java.util.Set;
 
 public interface IAgentAPI extends Remote {
-	List<String> getStoredZones() throws RemoteException;
+	Set<String> getStoredZones() throws RemoteException;
 
-	Map<String, Value> getZoneAttributes(String zone) throws RemoteException;
+	Map<String, Value> getZoneAttributes(String zone) throws RemoteException, NoSuchZoneException;
 
 	void upsertZoneAttributes(String zone, Map<String, Value> attributes) throws RemoteException;
 
@@ -45,4 +46,6 @@ public interface IAgentAPI extends Remote {
 	void uninstallQuery(String name) throws RemoteException;
 
 	void setFallbackContacts(Set<ValueContact> contacts) throws RemoteException;
+
+	Set<ValueContact> getFallbackContacts() throws RemoteException;
 }
