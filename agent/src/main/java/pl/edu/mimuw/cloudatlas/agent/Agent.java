@@ -24,13 +24,32 @@
 
 package pl.edu.mimuw.cloudatlas.agent;
 
+import pl.edu.mimuw.cloudatlas.agent.api.AgentAPI;
+import pl.edu.mimuw.cloudatlas.agent.api.IAgentAPI;
 import pl.edu.mimuw.cloudatlas.model.Type;
 import pl.edu.mimuw.cloudatlas.model.TypeCollection;
 import pl.edu.mimuw.cloudatlas.model.Value;
 import pl.edu.mimuw.cloudatlas.model.ValueList;
 
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+
 public class Agent {
 	public static void main(String[] args) {
-		System.out.println("Hello agent!");
+		if (System.getSecurityManager() == null) {
+			System.setSecurityManager(new SecurityManager());
+		}
+		try {
+			AgentAPI api = new AgentAPI();
+			IAgentAPI stub =
+					(IAgentAPI) UnicastRemoteObject.exportObject(api, 0);
+			Registry registry = LocateRegistry.getRegistry();
+			registry.rebind("AgentAPI", stub);
+			System.out.println("AgentAPI bound");
+		} catch (Exception e) {
+			System.err.println("Agent exception:");
+			e.printStackTrace();
+		}
 	}
 }
