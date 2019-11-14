@@ -8,4 +8,4 @@
  */
 
 rootProject.name = 'cloud_atlas'
-include 'common', 'agent'
+include 'common', 'agent', 'fetcher'

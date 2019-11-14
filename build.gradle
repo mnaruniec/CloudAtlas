@@ -38,6 +38,9 @@ project(':common') {
 project(':agent') {
 }
 
+project(':fetcher') {
+}
+
 build {
     dependsOn {
 //        project(':common').tasks.installDist
