@@ -21,3 +21,7 @@ application {
     applicationName = 'interpreter'
     mainClassName = 'pl.edu.mimuw.cloudatlas.interpreter.Main'
 }
+
+build {
+    dependsOn 'installDist'
+}
