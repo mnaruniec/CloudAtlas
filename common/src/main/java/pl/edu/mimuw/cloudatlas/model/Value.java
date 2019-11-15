@@ -238,4 +238,11 @@ public abstract class Value implements Serializable {
 	 * @return a default value of this type
 	 */
 	public abstract Value getDefaultValue();
+
+	/**
+	 * @return true if user cannot explicitly set such value
+	 */
+	public boolean isInternal() {
+		return false;
+	}
 }
