@@ -281,10 +281,12 @@ public class AttributesMap implements Iterable<Entry<Attribute, Value>>, Cloneab
 		return map.toString();
 	}
 
-	public Map<String, Value> toMap() {
+	public Map<String, Value> toMap(boolean excludeQueries) {
 		Map<String, Value> result = new HashMap<>();
 		for (Entry<Attribute, Value> entry: map.entrySet()) {
-			result.put(entry.getKey().getName(), entry.getValue());
+			if (!excludeQueries || !entry.getKey().getName().startsWith("&")) {
+				result.put(entry.getKey().getName(), entry.getValue());
+			}
 		}
 		return result;
 	}

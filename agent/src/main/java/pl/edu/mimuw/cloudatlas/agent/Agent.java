@@ -25,18 +25,32 @@
 package pl.edu.mimuw.cloudatlas.agent;
 
 import pl.edu.mimuw.cloudatlas.agent.api.IAgentAPI;
+import pl.edu.mimuw.cloudatlas.interpreter.Interpreter;
+import pl.edu.mimuw.cloudatlas.interpreter.QueryResult;
+import pl.edu.mimuw.cloudatlas.interpreter.query.Absyn.AliasedSelItemC;
+import pl.edu.mimuw.cloudatlas.interpreter.query.Absyn.Program;
+import pl.edu.mimuw.cloudatlas.interpreter.query.Absyn.ProgramC;
+import pl.edu.mimuw.cloudatlas.interpreter.query.Absyn.SelItem;
+import pl.edu.mimuw.cloudatlas.interpreter.query.Absyn.SelItemC;
+import pl.edu.mimuw.cloudatlas.interpreter.query.Absyn.Statement;
+import pl.edu.mimuw.cloudatlas.interpreter.query.Absyn.StatementC;
+import pl.edu.mimuw.cloudatlas.interpreter.query.Yylex;
+import pl.edu.mimuw.cloudatlas.interpreter.query.parser;
+import pl.edu.mimuw.cloudatlas.model.Attribute;
+import pl.edu.mimuw.cloudatlas.model.AttributesMap;
 import pl.edu.mimuw.cloudatlas.model.PathName;
 import pl.edu.mimuw.cloudatlas.model.TypePrimitive;
 import pl.edu.mimuw.cloudatlas.model.Value;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
+import pl.edu.mimuw.cloudatlas.model.ValueQuery;
 import pl.edu.mimuw.cloudatlas.model.ValueSet;
-import pl.edu.mimuw.cloudatlas.model.ValueString;
 import pl.edu.mimuw.cloudatlas.model.ZMI;
 
-import java.rmi.RemoteException;
-import java.util.Collections;
+import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -64,7 +78,7 @@ public class Agent implements IAgentAPI {
 	}
 
 	@Override
-	public Set<String> getStoredZones() throws RemoteException {
+	public Set<String> getStoredZones() {
 		treeLock.readLock().lock();
 		try {
 			return new HashSet<String>(zmiIndex.keySet());
@@ -74,41 +88,188 @@ public class Agent implements IAgentAPI {
 	}
 
 	@Override
-	public Map<String, Value> getZoneAttributes(String zone) throws RemoteException, NoSuchZoneException {
+	public Map<String, Value> getZoneAttributes(String zone, boolean excludeQueries) throws NoSuchZoneException {
 		treeLock.readLock().lock();
 		try {
 			ZMI zmi = zmiIndex.get(zone);
 			if (zmi == null) {
 				throw new NoSuchZoneException("Zone '" + zone + "' not found.");
 			}
-			return zmi.getAttributes().toMap();
+			return zmi.getAttributes().toMap(excludeQueries);
 		} finally {
 			treeLock.readLock().unlock();
 		}
 	}
 
 	@Override
-	public void upsertZoneAttributes(String zone, Map<String, Value> attributes) throws RemoteException {
+	public void upsertZoneAttributes(String zone, Map<String, Value> attributes) throws NoSuchZoneException, IllegalAttributeException {
+		if (attributes.containsKey(ZMI.NAME_ATTR.getName())) {
+			throw new IllegalAttributeException("Name attribute cannot be changed.");
+		}
 
+		AttributesMap attributesMap = new AttributesMap();
+		for (Map.Entry<String, Value> entry: attributes.entrySet()) {
+			if (entry.getValue().isInternal()) {
+				throw new IllegalAttributeException(
+						"Value of type " + entry.getValue().getType() + " for key '" + entry.getKey() + "' is not settable."
+				);
+			}
+			if (entry.getKey().startsWith("&")) {
+				throw new IllegalAttributeException(entry.getKey() + " is reserved and cannot be set.");
+			}
+			// internal Attribute constructor validates key
+			attributesMap.add(entry.getKey(), entry.getValue());
+		}
+
+		treeLock.writeLock().lock();
+		try {
+			ZMI zmi = zmiIndex.get(zone);
+			if (zmi == null) {
+				throw new NoSuchZoneException("Zone '" + zone + "' not found.");
+			}
+			zmi.getAttributes().addOrChange(attributesMap);
+
+			refreshAll(root);
+		} finally {
+			treeLock.writeLock().unlock();
+		}
 	}
 
 	@Override
-	public void installQuery(String name, String query) throws RemoteException {
+	public void installQuery(String name, String query) throws IllegalAttributeException, QueryParsingException {
+		Attribute attribute = new Attribute("&" + name);
 
+		Program program;
+		try {
+			Yylex lex = new Yylex(new ByteArrayInputStream(query.getBytes()));
+			program = (new parser(lex)).pProgram();
+		} catch (Exception e) {
+			throw new QueryParsingException(e.getMessage());
+		}
+		validateIdents(program);
+		ValueQuery value = new ValueQuery(program);
+
+		treeLock.writeLock().lock();
+		try {
+			installQuery(root, attribute, value);
+			refreshAll(root);
+		} finally {
+			treeLock.writeLock().unlock();
+		}
+	}
+
+	private void validateIdents(Program p) throws IllegalAttributeException {
+		List<Attribute> attributes = new LinkedList<>();
+		p.accept(new IdentGetter(), attributes);
+		for (Attribute attribute: attributes) {
+			if (Attribute.isQuery(attribute)) {
+				throw new IllegalAttributeException(attribute.getName() + " is reserved and cannot be used as an alias.");
+			}
+			if (attribute.equals(ZMI.NAME_ATTR)) {
+				throw new IllegalAttributeException("Name attribute cannot be overwritten.");
+			}
+		}
+	}
+
+	private static class IdentGetter implements
+			Program.Visitor<Void, List<Attribute>>,
+			Statement.Visitor<Void, List<Attribute>>,
+			SelItem.Visitor<Void, List<Attribute>> {
+		@Override
+		public Void visit(ProgramC p, List<Attribute> arg) {
+			for (Statement stmt: p.liststatement_) {
+				stmt.accept(this, arg);
+			}
+			return null;
+		}
+
+		@Override
+		public Void visit(StatementC p, List<Attribute> arg) {
+			for (SelItem item: p.listselitem_) {
+				item.accept(this, arg);
+			}
+			return null;
+		}
+
+		@Override
+		public Void visit(SelItemC p, List<Attribute> arg) {
+			throw new IllegalArgumentException("All items in top-level SELECT must be aliased.");
+		}
+
+		@Override
+		public Void visit(AliasedSelItemC p, List<Attribute> arg) {
+			arg.add(new Attribute(p.qident_));
+			return null;
+		}
+	}
+
+	private void installQuery(ZMI zmi, Attribute attribute, ValueQuery query) {
+		List<ZMI> sons = zmi.getSons();
+		if (!sons.isEmpty()) {
+			for (ZMI son: sons) {
+				installQuery(son, attribute, query);
+			}
+			zmi.getAttributes().addOrChange(attribute, query);
+		}
+	}
+
+	private void refreshAll(ZMI zmi) {
+		List<ZMI> sons = zmi.getSons();
+		if (!sons.isEmpty()) {
+			for (ZMI son: sons) {
+				refreshAll(son);
+			}
+			Interpreter interpreter = new Interpreter(zmi);
+
+			for (Map.Entry<Attribute, Value> entry: zmi.getAttributes()) {
+				if (Attribute.isQuery(entry.getKey()) && entry.getValue() instanceof ValueQuery) {
+					try {
+						List<QueryResult> results = interpreter.interpretProgram(
+								((ValueQuery) entry.getValue()).getValue()
+						);
+						for (QueryResult result : results) {
+							zmi.getAttributes().addOrChange(result.getName(), result.getValue());
+						}
+					} catch (Exception e) {
+						System.out.println(
+								"Exception when evaluating query "
+								+ entry.getKey().getName()
+								+ " in node " + zmi.getName() + ": "
+								+ e.getMessage()
+						);
+					}
+				}
+			}
+		}
 	}
 
 	@Override
-	public void uninstallQuery(String name) throws RemoteException {
+	public void uninstallQuery(String name) {
+		treeLock.writeLock().lock();
+		try {
+			uninstallQuery(root, "&" + name);
+		} finally {
+			treeLock.writeLock().unlock();
+		}
+	}
 
+	private void uninstallQuery(ZMI zmi, String name) {
+		Value query = zmi.getAttributes().getOrNull(name);
+		if (query != null) {
+			zmi.getAttributes().remove(name);
+			for (ZMI son: zmi.getSons()) {
+				uninstallQuery(son, name);
+			}
+		}
 	}
 
 	@Override
-	public void setFallbackContacts(Set<ValueContact> contacts) throws RemoteException {
+	public void setFallbackContacts(Set<ValueContact> contacts) {
 		this.fallbackContacts = new ValueSet((Set)contacts, TypePrimitive.CONTACT);
 	}
 
 	@Override
-	public Set<ValueContact> getFallbackContacts() throws RemoteException {
+	public Set<ValueContact> getFallbackContacts() {
 		return (Set)fallbackContacts;
 	}
 }

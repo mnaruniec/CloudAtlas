@@ -24,7 +24,9 @@
 
 package pl.edu.mimuw.cloudatlas.agent.api;
 
+import pl.edu.mimuw.cloudatlas.agent.IllegalAttributeException;
 import pl.edu.mimuw.cloudatlas.agent.NoSuchZoneException;
+import pl.edu.mimuw.cloudatlas.agent.QueryParsingException;
 import pl.edu.mimuw.cloudatlas.model.Value;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
 
@@ -37,11 +39,14 @@ import java.util.Set;
 public interface IAgentAPI extends Remote {
 	Set<String> getStoredZones() throws RemoteException;
 
-	Map<String, Value> getZoneAttributes(String zone) throws RemoteException, NoSuchZoneException;
+	Map<String, Value> getZoneAttributes(String zone, boolean excludeQueries)
+			throws RemoteException, NoSuchZoneException;
 
-	void upsertZoneAttributes(String zone, Map<String, Value> attributes) throws RemoteException;
+	void upsertZoneAttributes(String zone, Map<String, Value> attributes)
+			throws RemoteException, NoSuchZoneException, IllegalAttributeException;
 
-	void installQuery(String name, String query) throws RemoteException;
+	void installQuery(String name, String query)
+			throws RemoteException, IllegalAttributeException, QueryParsingException;
 
 	void uninstallQuery(String name) throws RemoteException;
 

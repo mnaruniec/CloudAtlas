@@ -1,7 +1,9 @@
 package pl.edu.mimuw.cloudatlas.agent.api;
 
 import pl.edu.mimuw.cloudatlas.agent.Agent;
+import pl.edu.mimuw.cloudatlas.agent.IllegalAttributeException;
 import pl.edu.mimuw.cloudatlas.agent.NoSuchZoneException;
+import pl.edu.mimuw.cloudatlas.agent.QueryParsingException;
 import pl.edu.mimuw.cloudatlas.model.Value;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
 
@@ -26,17 +28,20 @@ public class AgentAPI implements IAgentAPI {
 	}
 
 	@Override
-	public Map<String, Value> getZoneAttributes(String zone) throws RemoteException, NoSuchZoneException {
-		return agent.getZoneAttributes(zone);
+	public Map<String, Value> getZoneAttributes(String zone, boolean excludeQueries)
+			throws RemoteException, NoSuchZoneException {
+		return agent.getZoneAttributes(zone, excludeQueries);
 	}
 
 	@Override
-	public void upsertZoneAttributes(String zone, Map<String, Value> attributes) throws RemoteException {
+	public void upsertZoneAttributes(String zone, Map<String, Value> attributes)
+			throws RemoteException, NoSuchZoneException, IllegalAttributeException {
 		agent.upsertZoneAttributes(zone, attributes);
 	}
 
 	@Override
-	public void installQuery(String name, String query) throws RemoteException {
+	public void installQuery(String name, String query)
+			throws RemoteException, IllegalAttributeException, QueryParsingException {
 		agent.installQuery(name, query);
 	}
 

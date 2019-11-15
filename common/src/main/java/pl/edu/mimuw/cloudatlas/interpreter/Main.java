@@ -82,7 +82,7 @@ public class Main {
 					zmi.getAttributes().addOrChange(r.getName(), r.getValue());
 				}
 			} catch(InterpreterException exception) {
-//				System.out.println("Interpreter exception occurred: " + exception.getMessage());
+				System.out.println("Interpreter exception occurred: " + exception.getMessage());
 			}
 		}
 	}
@@ -245,7 +245,8 @@ public class Main {
 			new ValueString("odbc")
 		});
 		whatever02.getAttributes().add("php_modules", new ValueList(list, TypePrimitive.STRING));
-		
+		whatever02.getAttributes().add("&query", new ValueString("noelo"));
+
 		return root;
 	}
 }

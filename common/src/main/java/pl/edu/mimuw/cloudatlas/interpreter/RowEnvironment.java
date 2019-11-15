@@ -43,6 +43,9 @@ class RowEnvironment implements Environment {
 
 	public Result getIdent(String ident) {
 		try {
+			if (ident.startsWith("&")) {
+				return new ResultSingle(ValueNull.getInstance());
+			}
 			return new ResultSingle(row.getIth(columns.get(ident)));
 		} catch(NullPointerException exception) {
 			return new ResultSingle(ValueNull.getInstance());
