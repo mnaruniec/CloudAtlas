@@ -40,3 +40,6 @@ project(':agent') {
 
 project(':fetcher') {
 }
+
+project(':client') {
+}
