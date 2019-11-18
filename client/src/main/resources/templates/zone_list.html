@@ -1,0 +1,13 @@
+<!DOCTYPE HTML>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Zone list - CloudAtlas</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+<h1>Zone list</h1>
+<ul th:each="zone : ${zoneList}">
+    <li><a th:href="@{/zone(name=${zone})}" th:text="${zone}"></a></li>
+</ul>
+</body>
+</html>
