@@ -1,13 +1,25 @@
 <!DOCTYPE HTML>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Zone list - CloudAtlas</title>
+    <title th:text="Zone ${zoneName} - CloudAtlas"></title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <script src="/webjars/jquery/3.4.1/jquery.min.js"></script>
     <script src="/zone.js"></script>
 </head>
 <body>
-<h1>Zone: <span th:text="${zoneName}"></span></h1>
-<div id="some">sth</div>
+<h1>Zone: <span id="zone_name" th:text="${zoneName}"></span></h1>
+<p id="error"></p>
+<table>
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Value</th>
+    </tr>
+    </thead>
+    <tbody id="attribute_table">
+
+    </tbody>
+</table>
 </body>
 </html>

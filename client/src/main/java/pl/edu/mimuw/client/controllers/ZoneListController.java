@@ -9,7 +9,7 @@ import pl.edu.mimuw.client.services.AgentService;
 @Controller
 public class ZoneListController {
 	@Autowired
-	AgentService agentService;
+	private AgentService agentService;
 
 	@GetMapping("/zone_list")
 	public String zone(Model model) {

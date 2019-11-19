@@ -21,25 +21,35 @@ public class Fetcher {
 		try {
 			Registry registry = LocateRegistry.getRegistry();
 			IAgentAPI api = (IAgentAPI) registry.lookup("AgentAPI");
+//
+//			for (int i = 0; ; i++) {
+//				try {
+//					api.getStoredZones();
+//					System.out.println("Success " + i);
+//				} catch (Exception e) {
+//					System.out.println("Exception " + i);
+//				}
+//				Thread.sleep(3000);
+//			}
 
-			System.out.println(api.getZoneAttributes("/uw/violet07", true));
-			System.out.println(api.getZoneAttributes("/uw/violet07", false));
-
-			System.out.println(api.getZoneAttributes("/uw", true));
+//			System.out.println(api.getZoneAttributes("/uw/violet07", true));
+//			System.out.println(api.getZoneAttributes("/uw/violet07", false));
+//
+//			System.out.println(api.getZoneAttributes("/uw", true));
 			System.out.println(api.getZoneAttributes("/uw", false));
-
-//			api.installQuery("jakies_query", "SELECT sum(cardinality) AS cardinality");
-			Map<String, Value> attrs = new HashMap<>();
-			attrs.put("cardinality", new ValueInt(3L));
-			api.upsertZoneAttributes("/uw/violet07", attrs);
-
-			System.out.println("\n\n");
-
-			System.out.println(api.getZoneAttributes("/uw/violet07", true));
-			System.out.println(api.getZoneAttributes("/uw/violet07", false));
-
-			System.out.println(api.getZoneAttributes("/uw", true));
-			System.out.println(api.getZoneAttributes("/uw", false));
+//
+////			api.installQuery("jakies_query", "SELECT sum(cardinality) AS cardinality");
+//			Map<String, Value> attrs = new HashMap<>();
+//			attrs.put("cardinality", new ValueInt(3L));
+//			api.upsertZoneAttributes("/uw/violet07", attrs);
+//
+//			System.out.println("\n\n");
+//
+//			System.out.println(api.getZoneAttributes("/uw/violet07", true));
+//			System.out.println(api.getZoneAttributes("/uw/violet07", false));
+//
+//			System.out.println(api.getZoneAttributes("/uw", true));
+//			System.out.println(api.getZoneAttributes("/uw", false));
 
 		} catch (Exception e) {
 			System.err.println("Fetcher exception:");
