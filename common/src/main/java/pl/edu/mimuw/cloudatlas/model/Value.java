@@ -245,4 +245,11 @@ public abstract class Value implements Serializable {
 	public boolean isInternal() {
 		return false;
 	}
+
+	/**
+	 * @return true if value is of numeric type
+	 */
+	public boolean isNumeric() {
+		return getType().isNumeric();
+	}
 }

@@ -271,4 +271,9 @@ public class ValueDuration extends ValueSimple<Long> {
 		String format = s + "%d %2d:%2d:%2d.%3d";
 		return String.format(format, d, hh, mm, ss, lll);
 	}
+
+	@Override
+	public boolean isNumeric() {
+		return true;
+	}
 }

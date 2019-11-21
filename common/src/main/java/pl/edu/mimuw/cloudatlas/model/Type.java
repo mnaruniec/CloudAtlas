@@ -80,4 +80,8 @@ public abstract class Type implements Serializable {
 	public boolean isCollection() {
 		return false;
 	}
+
+	public boolean isNumeric() {
+		return false;
+	}
 }

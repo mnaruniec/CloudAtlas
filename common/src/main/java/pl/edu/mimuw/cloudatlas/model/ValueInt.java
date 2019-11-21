@@ -130,4 +130,9 @@ public class ValueInt extends ValueSimple<Long> {
 				throw new UnsupportedConversionException(getType(), type);
 		}
 	}
+
+	@Override
+	public boolean isNumeric() {
+		return true;
+	}
 }

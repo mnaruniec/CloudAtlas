@@ -108,4 +108,9 @@ public class ValueDouble extends ValueSimple<Double> {
 				throw new UnsupportedConversionException(getType(), type);
 		}
 	}
+
+	@Override
+	public boolean isNumeric() {
+		return true;
+	}
 }
