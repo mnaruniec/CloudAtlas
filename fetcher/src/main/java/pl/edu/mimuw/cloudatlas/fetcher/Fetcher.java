@@ -1,59 +1,49 @@
 package pl.edu.mimuw.cloudatlas.fetcher;
 
+import com.sun.management.OperatingSystemMXBean;
 import pl.edu.mimuw.cloudatlas.agent.api.IAgentAPI;
-import pl.edu.mimuw.cloudatlas.model.PathName;
 import pl.edu.mimuw.cloudatlas.model.Value;
-import pl.edu.mimuw.cloudatlas.model.ValueContact;
-import pl.edu.mimuw.cloudatlas.model.ValueInt;
-import pl.edu.mimuw.cloudatlas.model.ValueString;
 
-import java.net.InetAddress;
+import java.io.File;
+import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class Fetcher {
-	public static void main(String[] args) {
-		System.out.println("Running fetcher");
+	public static void main(String[] args) throws IOException, InterruptedException {
+		if (args.length < 1) {
+			System.out.println("usage: fetcher <config.ini>");
+			System.exit(1);
+		}
+		Config config = new Config(new File(args[0]));
+
+		OperatingSystemMXBean bean = (OperatingSystemMXBean)ManagementFactory.getOperatingSystemMXBean();
+		DataCollector collector = new DataCollector(bean, config);
+		String zoneName = config.getName();
+		long collectionIntervalMs = config.getCollectionIntervalMs();
+
+		IAgentAPI api;
 		try {
 			Registry registry = LocateRegistry.getRegistry();
-			IAgentAPI api = (IAgentAPI) registry.lookup("AgentAPI");
-//
-//			for (int i = 0; ; i++) {
-//				try {
-//					api.getStoredZones();
-//					System.out.println("Success " + i);
-//				} catch (Exception e) {
-//					System.out.println("Exception " + i);
-//				}
-//				Thread.sleep(3000);
-//			}
-
-//			System.out.println(api.getZoneAttributes("/uw/violet07", true));
-//			System.out.println(api.getZoneAttributes("/uw/violet07", false));
-//
-//			System.out.println(api.getZoneAttributes("/uw", true));
-			System.out.println(api.getZoneAttributes("/uw", false));
-//
-////			api.installQuery("jakies_query", "SELECT sum(cardinality) AS cardinality");
-//			Map<String, Value> attrs = new HashMap<>();
-//			attrs.put("cardinality", new ValueInt(3L));
-//			api.upsertZoneAttributes("/uw/violet07", attrs);
-//
-//			System.out.println("\n\n");
-//
-//			System.out.println(api.getZoneAttributes("/uw/violet07", true));
-//			System.out.println(api.getZoneAttributes("/uw/violet07", false));
-//
-//			System.out.println(api.getZoneAttributes("/uw", true));
-//			System.out.println(api.getZoneAttributes("/uw", false));
-
+			api = (IAgentAPI) registry.lookup("AgentAPI");
 		} catch (Exception e) {
-			System.err.println("Fetcher exception:");
-			e.printStackTrace();
+			System.out.println("Could not retrieve AgentAPI object: " + e.getMessage());
+			System.exit(1);
+			return;
+		}
+
+		System.out.println("Starting fetcher loop.");
+
+		while (true) {
+			Map<String, Value> map = collector.getValueMap();
+			try {
+				api.upsertZoneAttributes(zoneName, map);
+			} catch (Exception e) {
+				System.out.println("Failed to upsert values, exception: " + e.getMessage());
+			}
+			Thread.sleep(collectionIntervalMs);
 		}
 	}
 }

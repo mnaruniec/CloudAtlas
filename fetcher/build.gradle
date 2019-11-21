@@ -7,7 +7,12 @@ plugins {
     id 'application'
 }
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
+    implementation 'org.ini4j:ini4j:0.5.4'
     implementation project(':common')
     implementation project(':agent')
 }
