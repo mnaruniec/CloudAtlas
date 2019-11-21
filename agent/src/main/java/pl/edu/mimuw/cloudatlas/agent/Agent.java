@@ -127,6 +127,9 @@ public class Agent implements IAgentAPI {
 			if (zmi == null) {
 				throw new NoSuchZoneException("Zone '" + zone + "' not found.");
 			}
+			if (!zmi.getSons().isEmpty()) {
+				throw new IllegalArgumentException("Zone '" + zone + "' is not a leaf zone.");
+			}
 			zmi.getAttributes().addOrChange(attributesMap);
 
 			refreshAll(root);
