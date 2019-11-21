@@ -1,6 +1,7 @@
 package pl.edu.mimuw.cloudatlas.fetcher;
 
 import com.sun.management.OperatingSystemMXBean;
+import oshi.SystemInfo;
 import pl.edu.mimuw.cloudatlas.agent.api.IAgentAPI;
 import pl.edu.mimuw.cloudatlas.model.Value;
 
@@ -20,7 +21,8 @@ public class Fetcher {
 		Config config = new Config(new File(args[0]));
 
 		OperatingSystemMXBean bean = (OperatingSystemMXBean)ManagementFactory.getOperatingSystemMXBean();
-		DataCollector collector = new DataCollector(bean, config);
+		SystemInfo systemInfo = new SystemInfo();
+		DataCollector collector = new DataCollector(bean, systemInfo, config);
 		String zoneName = config.getName();
 		long collectionIntervalMs = config.getCollectionIntervalMs();
 

@@ -1,6 +1,9 @@
 package pl.edu.mimuw.cloudatlas.fetcher;
 
 import com.sun.management.OperatingSystemMXBean;
+import oshi.SystemInfo;
+import oshi.hardware.HardwareAbstractionLayer;
+import oshi.software.os.OperatingSystem;
 import pl.edu.mimuw.cloudatlas.model.Value;
 import pl.edu.mimuw.cloudatlas.model.ValueDouble;
 import pl.edu.mimuw.cloudatlas.model.ValueInt;
@@ -13,12 +16,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
+// TODO
+//		the average CPU load (over all cores) as cpu_load
+//		the number of users logged in as logged_users
+//		a set of up to three DNS names of the machine dns_names
 public class DataCollector {
+	private OperatingSystem os;
+	private HardwareAbstractionLayer hal;
 	private OperatingSystemMXBean bean;
 	private List<File> mounts;
 
-	public DataCollector(OperatingSystemMXBean bean, Config config) {
+	public DataCollector(OperatingSystemMXBean bean, SystemInfo systemInfo, Config config) {
 		this.bean = bean;
+		this.hal = systemInfo.getHardware();
+		this.os = systemInfo.getOperatingSystem();
 		this.mounts = config.getMountPoints();
 	}
 
@@ -80,5 +92,13 @@ public class DataCollector {
 
 	public String getKernelVer() {
 		return bean.getVersion();
+	}
+
+	public long getNumProcesses() {
+		return os.getProcessCount();
+	}
+
+	public long getNumCores() {
+		return hal.getProcessor().getLogicalProcessorCount();
 	}
 }
