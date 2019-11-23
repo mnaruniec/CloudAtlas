@@ -7,11 +7,12 @@ import oshi.software.os.OperatingSystem;
 import pl.edu.mimuw.cloudatlas.model.Value;
 import pl.edu.mimuw.cloudatlas.model.ValueDouble;
 import pl.edu.mimuw.cloudatlas.model.ValueInt;
-import pl.edu.mimuw.cloudatlas.model.ValueList;
 import pl.edu.mimuw.cloudatlas.model.ValueString;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.lang.management.ManagementFactory;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,9 +20,14 @@ import java.util.Map;
 
 // TODO
 //		the average CPU load (over all cores) as cpu_load
-//		the number of users logged in as logged_users
 //		a set of up to three DNS names of the machine dns_names
 public class DataCollector {
+	private static final String[] LOGGED_USERS_CMD = {
+			"/bin/sh",
+			"-c",
+			"users | tr ' ' '\\n' | sort -u | wc -l"
+	};
+
 	private OperatingSystem os;
 	private HardwareAbstractionLayer hal;
 	private OperatingSystemMXBean bean;
@@ -36,13 +42,30 @@ public class DataCollector {
 
 	public Map<String, Value> getValueMap() {
 		Map<String, Value> result = new HashMap<>();
-		result.put("free_ram", toValue(getFreeRam()));
-		result.put("total_ram", toValue(getTotalRam()));
-		result.put("free_swap", toValue(getFreeSwap()));
-		result.put("total_swap", toValue(getTotalSwap()));
-		result.put("free_disk", toValue(getFreeDisk()));
-		result.put("total_disk", toValue(getTotalDisk()));
-		result.put("kernel_ver", toValue(getKernelVer()));
+		try {
+			result.put("free_ram", toValue(getFreeRam()));
+			result.put("total_ram", toValue(getTotalRam()));
+			result.put("free_swap", toValue(getFreeSwap()));
+			result.put("total_swap", toValue(getTotalSwap()));
+			result.put("free_disk", toValue(getFreeDisk()));
+			result.put("total_disk", toValue(getTotalDisk()));
+			result.put("kernel_ver", toValue(getKernelVer()));
+			result.put("num_processes", toValue(getNumProcesses()));
+			result.put("num_cores", toValue(getNumCores()));
+			try {
+				result.put("logged_users", toValue(getLoggedUsers()));
+			} catch (IOException e) {
+				System.out.println(
+					"Failed to read logged_users value, omitting. Exception: "
+					+ e.getMessage()
+				);
+			}
+		} catch (Exception e) {
+			System.out.println(
+				"Unexpected exception when reading values, returning gathered ones. Exception: "
+				+ e.getMessage()
+			);
+		}
 		return result;
 	}
 
@@ -100,5 +123,34 @@ public class DataCollector {
 
 	public long getNumCores() {
 		return hal.getProcessor().getLogicalProcessorCount();
+	}
+
+	public long getLoggedUsers() throws InterruptedException, IOException {
+		Process process = null;
+		try {
+			process = Runtime.getRuntime().exec(LOGGED_USERS_CMD);
+			BufferedReader reader = new BufferedReader(
+					new InputStreamReader(process.getInputStream()));
+
+			String line;
+			if ((line = reader.readLine()) == null) {
+				throw new IOException("Did not receive expected output.");
+			}
+			try {
+				return Long.parseLong(line);
+			} catch (NumberFormatException e) {
+				throw new IOException("Could not parse long.");
+			}
+		} finally {
+			try {
+				if (process != null) {
+					process.waitFor();
+				}
+			} catch (InterruptedException e) {
+				System.out.println("Thread interrupted.");
+				Thread.currentThread().interrupt();
+				throw e;
+			}
+		}
 	}
 }
