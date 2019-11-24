@@ -50,7 +50,7 @@ import pl.edu.mimuw.cloudatlas.model.ValueString;
 import pl.edu.mimuw.cloudatlas.model.ValueTime;
 import pl.edu.mimuw.cloudatlas.model.ZMI;
 
-public class Main {
+public class LabInterpreterMain {
 	private static ZMI root;
 	
 	public static void main(String[] args) throws Exception {

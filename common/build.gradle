@@ -18,8 +18,8 @@ test {
 }
 
 application {
-    applicationName = 'interpreter'
-    mainClassName = 'pl.edu.mimuw.cloudatlas.interpreter.Main'
+    applicationName = 'lab_interpreter'
+    mainClassName = 'pl.edu.mimuw.cloudatlas.interpreter.LabInterpreterMain'
 }
 
 build {
