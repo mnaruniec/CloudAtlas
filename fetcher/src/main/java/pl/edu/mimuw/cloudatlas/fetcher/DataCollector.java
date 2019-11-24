@@ -3,25 +3,30 @@ package pl.edu.mimuw.cloudatlas.fetcher;
 import com.sun.management.OperatingSystemMXBean;
 import oshi.SystemInfo;
 import oshi.hardware.HardwareAbstractionLayer;
+import oshi.hardware.NetworkIF;
 import oshi.software.os.OperatingSystem;
+import pl.edu.mimuw.cloudatlas.model.TypePrimitive;
 import pl.edu.mimuw.cloudatlas.model.Value;
 import pl.edu.mimuw.cloudatlas.model.ValueDouble;
 import pl.edu.mimuw.cloudatlas.model.ValueInt;
+import pl.edu.mimuw.cloudatlas.model.ValueSet;
 import pl.edu.mimuw.cloudatlas.model.ValueString;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 
-// TODO
-//		a set of up to three DNS names of the machine dns_names
 public class DataCollector {
 	private static final String[] LOGGED_USERS_CMD = {
 			"/bin/sh",
@@ -91,14 +96,15 @@ public class DataCollector {
 				result.put("logged_users", toValue(getLoggedUsers()));
 			} catch (IOException e) {
 				System.out.println(
-					"Failed to read logged_users value, omitting. Exception: "
-					+ e.getMessage()
+						"Failed to read logged_users value, omitting. Exception: "
+								+ e.getMessage()
 				);
 			}
+			result.put("dns_names", toValue(getDNSNames()));
 		} catch (Exception e) {
 			System.out.println(
-				"Unexpected exception when reading values, returning the gathered ones. Exception: "
-				+ e.getMessage()
+					"Unexpected exception when reading values, returning the gathered ones. Exception: "
+							+ e.getMessage()
 			);
 		}
 		return result;
@@ -114,6 +120,13 @@ public class DataCollector {
 
 	private Value toValue(Double val) {
 		return new ValueDouble(val);
+	}
+
+	private Value toValue(Set<String> val) {
+		return new ValueSet(
+				val.stream().map(ValueString::new).collect(Collectors.toSet()),
+				TypePrimitive.STRING
+		);
 	}
 
 	public long getFreeRam() {
@@ -134,7 +147,7 @@ public class DataCollector {
 
 	public long getFreeDisk() {
 		long result = 0;
-		for (File f: mounts) {
+		for (File f : mounts) {
 			result += f.getFreeSpace();
 		}
 		return result;
@@ -142,7 +155,7 @@ public class DataCollector {
 
 	public long getTotalDisk() {
 		long result = 0;
-		for (File f: mounts) {
+		for (File f : mounts) {
 			result += f.getTotalSpace();
 		}
 		return result;
@@ -192,5 +205,31 @@ public class DataCollector {
 	public Double getCPULoad() {
 		double[] cpuLoad = this.loadThread.getLoad();
 		return mean.eval(cpuLoad);
+	}
+
+	public Set<String> getDNSNames() {
+		Set<String> result = new HashSet<>();
+		NetworkIF[] nics = hal.getNetworkIFs();
+		for (NetworkIF nic : nics) {
+			for (String[] addrs : new String[][]{nic.getIPv6addr(), nic.getIPv4addr()}) {
+				for (String addr : addrs) {
+					try {
+						InetAddress ia = InetAddress.getByName(addr);
+						if (!ia.isLoopbackAddress()) {
+							String hostname = ia.getCanonicalHostName();
+							if (!hostname.equals(addr)) {
+								result.add(hostname);
+								if (result.size() >= 3) {
+									return result;
+								}
+							}
+						}
+					} catch (Exception e) {
+						// skip
+					}
+				}
+			}
+		}
+		return result;
 	}
 }
