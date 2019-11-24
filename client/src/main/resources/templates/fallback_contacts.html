@@ -1,0 +1,32 @@
+<!DOCTYPE HTML>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Fallback contacts - CloudAtlas</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link href="webjars/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div th:replace="menu :: menu"></div>
+<div class="container">
+    <h1>Fallback contacts</h1>
+    <p>Current value: <span th:text="${current}"></span></p>
+    <p>Format: Even number of lines. Odd ones are names, even are Internet addresses.
+        <br/>
+        Example:
+        <br/>
+        /uw/violet07
+        <br/>
+        192.168.11.10
+        <br/>
+        /pjwstk/whatever01
+        <br/>
+        127.0.0.1
+    </p>
+    <form action="#" th:action="@{/fallback_contacts}" th:object="${fallbackContactsForm}" method="post" id="fallback_form">
+        <p>New value: <textarea rows="10" cols="80" th:field="*{input}" form="fallback_form"></textarea></p>
+        <p><input type="submit" value="Submit"/> <input type="reset" value="Reset" /></p>
+    </form>
+    <p th:text="${message}"></p>
+</div>
+</body>
+</html>
