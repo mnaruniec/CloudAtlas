@@ -1,17 +1,17 @@
 /**
  * Copyright (c) 2014, University of Warsaw
  * All rights reserved.
- *
+ * <p>
  * Redistribution and use in source and binary forms, with or without modification, are permitted
  * provided that the following conditions are met:
- *
+ * <p>
  * 1. Redistributions of source code must retain the above copyright notice, this list of
  * conditions and the following disclaimer.
- *
+ * <p>
  * 2. Redistributions in binary form must reproduce the above copyright notice, this list of
  * conditions and the following disclaimer in the documentation and/or other materials provided
  * with the distribution.
- *
+ * <p>
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
@@ -71,7 +71,7 @@ public class Agent implements IAgentAPI {
 	}
 
 	private void buildIndex(ZMI zmi, PathName path) {
-		for (ZMI son: zmi.getSons()) {
+		for (ZMI son : zmi.getSons()) {
 			buildIndex(son, path.levelDown(son.getName()));
 		}
 		zmiIndex.put(path.toString(), zmi);
@@ -108,7 +108,7 @@ public class Agent implements IAgentAPI {
 		}
 
 		AttributesMap attributesMap = new AttributesMap();
-		for (Map.Entry<String, Value> entry: attributes.entrySet()) {
+		for (Map.Entry<String, Value> entry : attributes.entrySet()) {
 			if (entry.getValue().isInternal()) {
 				throw new IllegalAttributeException(
 						"Value of type " + entry.getValue().getType() + " for key '" + entry.getKey() + "' is not settable."
@@ -164,7 +164,7 @@ public class Agent implements IAgentAPI {
 	private void validateIdents(Program p) throws IllegalAttributeException {
 		List<Attribute> attributes = new LinkedList<>();
 		p.accept(new IdentGetter(), attributes);
-		for (Attribute attribute: attributes) {
+		for (Attribute attribute : attributes) {
 			if (Attribute.isQuery(attribute)) {
 				throw new IllegalAttributeException(attribute.getName() + " is reserved and cannot be used as an alias.");
 			}
@@ -180,7 +180,7 @@ public class Agent implements IAgentAPI {
 			SelItem.Visitor<Void, List<Attribute>> {
 		@Override
 		public Void visit(ProgramC p, List<Attribute> arg) {
-			for (Statement stmt: p.liststatement_) {
+			for (Statement stmt : p.liststatement_) {
 				stmt.accept(this, arg);
 			}
 			return null;
@@ -188,7 +188,7 @@ public class Agent implements IAgentAPI {
 
 		@Override
 		public Void visit(StatementC p, List<Attribute> arg) {
-			for (SelItem item: p.listselitem_) {
+			for (SelItem item : p.listselitem_) {
 				item.accept(this, arg);
 			}
 			return null;
@@ -209,7 +209,7 @@ public class Agent implements IAgentAPI {
 	private void installQuery(ZMI zmi, Attribute attribute, ValueQuery query) {
 		List<ZMI> sons = zmi.getSons();
 		if (!sons.isEmpty()) {
-			for (ZMI son: sons) {
+			for (ZMI son : sons) {
 				installQuery(son, attribute, query);
 			}
 			zmi.getAttributes().addOrChange(attribute, query);
@@ -219,28 +219,33 @@ public class Agent implements IAgentAPI {
 	private void refreshAll(ZMI zmi) {
 		List<ZMI> sons = zmi.getSons();
 		if (!sons.isEmpty()) {
-			for (ZMI son: sons) {
+			for (ZMI son : sons) {
 				refreshAll(son);
 			}
 			Interpreter interpreter = new Interpreter(zmi);
 
-			for (Map.Entry<Attribute, Value> entry: zmi.getAttributes()) {
+			Map<Attribute, Program> queries = new HashMap<>();
+			for (Map.Entry<Attribute, Value> entry : zmi.getAttributes()) {
 				if (Attribute.isQuery(entry.getKey()) && entry.getValue() instanceof ValueQuery) {
-					try {
-						List<QueryResult> results = interpreter.interpretProgram(
-								((ValueQuery) entry.getValue()).getValue()
-						);
-						for (QueryResult result : results) {
-							zmi.getAttributes().addOrChange(result.getName(), result.getValue());
-						}
-					} catch (Exception e) {
-						System.out.println(
-								"Exception when evaluating query "
-								+ entry.getKey().getName()
-								+ " in node " + zmi.getName() + ": "
-								+ e.getMessage()
-						);
+					queries.put(entry.getKey(), ((ValueQuery) entry.getValue()).getValue());
+				}
+			}
+
+			for (Map.Entry<Attribute, Program> entry : queries.entrySet()) {
+				try {
+					List<QueryResult> results = interpreter.interpretProgram(
+							entry.getValue()
+					);
+					for (QueryResult result : results) {
+						zmi.getAttributes().addOrChange(result.getName(), result.getValue());
 					}
+				} catch (Exception e) {
+					System.out.println(
+							"Exception when evaluating query "
+									+ entry.getKey().getName()
+									+ " in node " + zmi.getName() + ": "
+									+ e.getMessage()
+					);
 				}
 			}
 		}
@@ -260,7 +265,7 @@ public class Agent implements IAgentAPI {
 		Value query = zmi.getAttributes().getOrNull(name);
 		if (query != null) {
 			zmi.getAttributes().remove(name);
-			for (ZMI son: zmi.getSons()) {
+			for (ZMI son : zmi.getSons()) {
 				uninstallQuery(son, name);
 			}
 		}
@@ -268,11 +273,11 @@ public class Agent implements IAgentAPI {
 
 	@Override
 	public void setFallbackContacts(Set<ValueContact> contacts) {
-		this.fallbackContacts = new ValueSet((Set)contacts, TypePrimitive.CONTACT);
+		this.fallbackContacts = new ValueSet((Set) contacts, TypePrimitive.CONTACT);
 	}
 
 	@Override
 	public Set<ValueContact> getFallbackContacts() {
-		return (Set)fallbackContacts;
+		return (Set) fallbackContacts;
 	}
 }
