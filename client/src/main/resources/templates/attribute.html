@@ -6,11 +6,15 @@
     <script src="/webjars/jquery/3.4.1/jquery.min.js"></script>
     <script src="/webjars/chartjs/2.8.0/Chart.js"></script>
     <script src="/attribute.js"></script>
+    <link href="webjars/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-<h1>Zone: <span id="zone_name" th:text="${zoneName}"></span></h1>
-<h2>Attribute: <span id="attribute" th:text="${attribute}"></span></h2>
-<p id="error"></p>
-<canvas id="plot" width="0.1" height="0.5"></canvas>
+<div th:replace="menu :: menu"></div>
+<div class="container">
+    <h1>Zone: <span id="zone_name" th:text="${zoneName}"></span></h1>
+    <h2>Attribute: <span id="attribute" th:text="${attribute}"></span></h2>
+    <p id="error"></p>
+    <canvas id="plot" width="2" height="1"></canvas>
+</div>
 </body>
 </html>

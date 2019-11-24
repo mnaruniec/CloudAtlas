@@ -3,13 +3,17 @@
 <head>
     <title>Uninstall query - CloudAtlas</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link href="webjars/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-<h1>Uninstall query</h1>
-<form action="#" th:action="@{/uninstall}" th:object="${uninstallForm}" method="post">
-    <p>Name (without &): <input type="text" th:field="*{name}" /></p>
-    <p><input type="submit" value="Submit" /> <input type="reset" value="Reset" /></p>
-</form>
-<p th:text="${message}"></p>
+<div th:replace="menu :: menu"></div>
+<div class="container">
+    <h1>Uninstall query</h1>
+    <form action="#" th:action="@{/uninstall}" th:object="${uninstallForm}" method="post">
+        <p>Name (without &): <input type="text" th:field="*{name}" /></p>
+        <p><input type="submit" value="Submit" /> <input type="reset" value="Reset" /></p>
+    </form>
+    <p th:text="${message}"></p>
+</div>
 </body>
 </html>

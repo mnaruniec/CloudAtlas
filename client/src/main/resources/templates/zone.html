@@ -5,21 +5,25 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <script src="/webjars/jquery/3.4.1/jquery.min.js"></script>
     <script src="/zone.js"></script>
+    <link href="webjars/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-<h1>Zone: <span id="zone_name" th:text="${zoneName}"></span></h1>
-<p id="error"></p>
-<table>
-    <thead>
-    <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Value</th>
-    </tr>
-    </thead>
-    <tbody id="attribute_table">
+<div th:replace="menu :: menu"></div>
+<div class="container">
+    <h1>Zone: <span id="zone_name" th:text="${zoneName}"></span></h1>
+    <p id="error"></p>
+    <table>
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Value</th>
+        </tr>
+        </thead>
+        <tbody id="attribute_table">
 
-    </tbody>
-</table>
+        </tbody>
+    </table>
+</div>
 </body>
 </html>

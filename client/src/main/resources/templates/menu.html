@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Menu - CloudAtlas</title>
+    <link href="webjars/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<nav th:fragment="menu">
+    <div class="container">
+        <div class="navbar-header">
+            <div class="navbar-brand">CloudAtlas</div>
+        </div>
+        <div class="nav navbar-nav">
+                <a th:href="@{/zone_list}">Zone list</a>
+                <a th:href="@{/install}">Install query</a>
+                <a th:href="@{/uninstall}">Uninstall query</a>
+        </div>
+    </div>
+</nav>
+</body>
+</html>

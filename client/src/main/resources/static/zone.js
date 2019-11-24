@@ -12,12 +12,17 @@ $(document).ready(function () {
             for (var i = 0; i < data.data.length; i++) {
                 table.append(
                     '<tr>' +
-                    '<td id="name_' + i.toString() + '"></td>' +
+                    '<td><a href="" id="name_' + i.toString() + '"></a></td>' +
                     '<td id="type_' + i.toString() + '"></td>' +
                     '<td id="value_' + i.toString() + '"></td>' +
                     '</tr>'
                 );
-                $('#name_' + i.toString()).text(data.data[i].name);
+                var nameSel = $('#name_' + i.toString());
+                nameSel.text(data.data[i].name);
+                nameSel.attr(
+                    "href",
+                    encodeURI('/attribute?zone=' + zoneName + '&attribute=' + data.data[i].name)
+                );
                 $('#type_' + i.toString()).text(data.data[i].type);
                 $('#value_' + i.toString()).text(data.data[i].value);
             }

@@ -3,14 +3,18 @@
 <head>
     <title>Install query - CloudAtlas</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link href="webjars/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-<h1>Install query</h1>
-<form action="#" th:action="@{/install}" th:object="${installForm}" method="post" id="install_form">
-    <p>Name (without &): <input type="text" th:field="*{name}" /></p>
-    <p>Query: <textarea rows="20" cols="80" th:field="*{query}" form="install_form"></textarea></p>
-    <p><input type="submit" value="Submit" /> <input type="reset" value="Reset" /></p>
-</form>
-<p th:text="${message}"></p>
+<div th:replace="menu :: menu"></div>
+<div class="container">
+    <h1>Install query</h1>
+    <form action="#" th:action="@{/install}" th:object="${installForm}" method="post" id="install_form">
+        <p>Name (without &): <input type="text" th:field="*{name}" /></p>
+        <p>Query: <textarea rows="10" cols="80" th:field="*{query}" form="install_form"></textarea></p>
+        <p><input type="submit" value="Submit"/> <input type="reset" value="Reset" /></p>
+    </form>
+    <p th:text="${message}"></p>
+</div>
 </body>
 </html>
