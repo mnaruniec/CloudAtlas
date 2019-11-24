@@ -6,7 +6,7 @@ $(document).ready(function () {
         if (data.error) {
             $('#error').text("ERROR: Failed to fetch current data. " + data.error);
         } else {
-            $('#error').text();
+            $('#error').text("");
             var table = $('#attribute_table');
             table.empty();
             for (var i = 0; i < data.data.length; i++) {

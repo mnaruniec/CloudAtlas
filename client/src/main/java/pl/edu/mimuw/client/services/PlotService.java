@@ -28,7 +28,8 @@ import java.util.Set;
 
 @Service
 public class PlotService {
-	public static final int SAMPLE_CAPACITY = 1000;
+	public static final int SAMPLE_CAPACITY = 10000;
+	public static final int COLLECTION_INTERVAL_MS = 5000;
 	public static final DateFormat TIME_FORMAT = new SimpleDateFormat("MM/dd HH:mm:ss");
 
 
@@ -102,7 +103,7 @@ public class PlotService {
 		return root;
 	}
 
-	@Scheduled(fixedDelay = 5000, initialDelay = 1000)
+	@Scheduled(fixedDelay = COLLECTION_INTERVAL_MS, initialDelay = 1000)
 	public void update() {
 		List<String> zones = agentService.getStoredZonesList();
 

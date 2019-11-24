@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    var intervalMs = 5000;
+    var intervalMs = 3000;
     var zoneName = $('#zone_name').text();
     var attrName = $('#attribute').text();
 
@@ -32,7 +32,7 @@ $(document).ready(function () {
         if (data.error) {
             $('#error').text("ERROR: Failed to fetch current data. " + data.error);
         } else {
-            $('#error').text();
+            $('#error').text("");
             plotData.data.datasets[0].data = data.data;
             plotData.data.datasets[0].data_type = data.data_type;
             plotData.data.labels = data.label;
