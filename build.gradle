@@ -43,3 +43,6 @@ project(':fetcher') {
 
 project(':client') {
 }
+
+project(':interpreter') {
+}

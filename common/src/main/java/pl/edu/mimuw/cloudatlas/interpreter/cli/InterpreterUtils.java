@@ -63,6 +63,13 @@ public class InterpreterUtils {
 		}
 	}
 
+	public static void printHierarchy(ZMI zmi) {
+		System.out.println(zmi + "\n");
+		for (ZMI son: zmi.getSons()) {
+			printHierarchy(son);
+		}
+	}
+
 	private static ValueContact createContact(String path, byte ip1, byte ip2, byte ip3, byte ip4)
 			throws UnknownHostException {
 		return new ValueContact(new PathName(path), InetAddress.getByAddress(new byte[]{
