@@ -19,6 +19,12 @@ public class Config {
 	public static final String MOUNT_POINTS = "mount_points";
 	public static final String DEFAULT_MOUNT_POINTS = "/";
 
+	public static final String CPU_SECTION = "cpu";
+	public static final String CPU_AVG_PERIOD_MS = "cpu_avg_period_ms";
+	public static final long DEFAULT_CPU_AVG_PERIOD_MS = 3000L;
+	public static final String CPU_AVG_METHOD = "cpu_avg_method";
+	public static final String DEFAULT_CPU_AVG_METHOD = "arithmetic";
+
 	private Wini ini;
 
 	public Config(File file) throws IOException {
@@ -35,7 +41,7 @@ public class Config {
 
 	public long getCollectionIntervalMs() {
 		return getValue(
-				GENERAL_SECTION, COLLECTION_INTERVAL_MS, long.class, DEFAULT_COLLECTION_INTERVAL_MS
+				GENERAL_SECTION, COLLECTION_INTERVAL_MS, Long.class, DEFAULT_COLLECTION_INTERVAL_MS
 		);
 	}
 
@@ -46,5 +52,13 @@ public class Config {
 
 	public String getName() {
 		return getValue(GENERAL_SECTION, NAME, String.class, DEFAULT_NAME);
+	}
+
+	public long getCPUAvgPeriodMs() {
+		return getValue(CPU_SECTION, CPU_AVG_PERIOD_MS, Long.class, DEFAULT_CPU_AVG_PERIOD_MS);
+	}
+
+	public String getCPUAvgMethod() {
+		return getValue(CPU_SECTION, CPU_AVG_METHOD, String.class, DEFAULT_CPU_AVG_METHOD).toLowerCase();
 	}
 }

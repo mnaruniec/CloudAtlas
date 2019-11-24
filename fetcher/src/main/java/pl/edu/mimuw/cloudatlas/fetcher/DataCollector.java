@@ -16,10 +16,11 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 // TODO
-//		the average CPU load (over all cores) as cpu_load
 //		a set of up to three DNS names of the machine dns_names
 public class DataCollector {
 	private static final String[] LOGGED_USERS_CMD = {
@@ -33,11 +34,44 @@ public class DataCollector {
 	private OperatingSystemMXBean bean;
 	private List<File> mounts;
 
+	private Mean mean;
+
+	private CPULoadThread loadThread;
+	private ExecutorService executor;
+
 	public DataCollector(OperatingSystemMXBean bean, SystemInfo systemInfo, Config config) {
 		this.bean = bean;
 		this.hal = systemInfo.getHardware();
 		this.os = systemInfo.getOperatingSystem();
 		this.mounts = config.getMountPoints();
+		this.executor = Executors.newSingleThreadExecutor();
+		initializeCPULoadThread(systemInfo, config);
+		setMeanObject(config);
+	}
+
+	private void setMeanObject(Config config) {
+		switch (config.getCPUAvgMethod()) {
+			case "geometric":
+				this.mean = Mean.GEOMETRIC_MEAN;
+				break;
+			case "harmonic":
+				this.mean = Mean.HARMONIC_MEAN;
+				break;
+			case "min":
+				this.mean = Mean.MIN;
+				break;
+			case "max":
+				this.mean = Mean.MAX;
+				break;
+			case "arithmetic":
+			default:
+				this.mean = Mean.ARITHMETIC_MEAN;
+		}
+	}
+
+	private void initializeCPULoadThread(SystemInfo systemInfo, Config config) {
+		this.loadThread = new CPULoadThread(systemInfo.getHardware(), config.getCPUAvgPeriodMs());
+		executor.execute(this.loadThread);
 	}
 
 	public Map<String, Value> getValueMap() {
@@ -52,6 +86,7 @@ public class DataCollector {
 			result.put("kernel_ver", toValue(getKernelVer()));
 			result.put("num_processes", toValue(getNumProcesses()));
 			result.put("num_cores", toValue(getNumCores()));
+			result.put("cpu_load", toValue(getCPULoad()));
 			try {
 				result.put("logged_users", toValue(getLoggedUsers()));
 			} catch (IOException e) {
@@ -62,14 +97,14 @@ public class DataCollector {
 			}
 		} catch (Exception e) {
 			System.out.println(
-				"Unexpected exception when reading values, returning gathered ones. Exception: "
+				"Unexpected exception when reading values, returning the gathered ones. Exception: "
 				+ e.getMessage()
 			);
 		}
 		return result;
 	}
 
-	private Value toValue(long val) {
+	private Value toValue(Long val) {
 		return new ValueInt(val);
 	}
 
@@ -152,5 +187,10 @@ public class DataCollector {
 				throw e;
 			}
 		}
+	}
+
+	public Double getCPULoad() {
+		double[] cpuLoad = this.loadThread.getLoad();
+		return mean.eval(cpuLoad);
 	}
 }
