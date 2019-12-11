@@ -62,7 +62,6 @@ class ResultList extends Result {
     @Override
     public ResultList unaryOperation(UnaryOperation operation) {
         if (value.isNull()) {
-            // TODO - rethink this type
             return new ResultList(new ValueList(null, TypePrimitive.NULL));
         }
         List<Value> result = value.getValue().stream().map(operation::perform).collect(Collectors.toList());
@@ -76,7 +75,6 @@ class ResultList extends Result {
 
     @Override
     public Value getValue() {
-        // TODO - make sure it shouldn't return ValueList
         throw new UnsupportedOperationException("Not a ResultSingle.");
     }
 
@@ -92,7 +90,6 @@ class ResultList extends Result {
 
     @Override
     public ResultList filterNulls() {
-        // TODO - list or single?
         return new ResultList(Result.filterNullsList(value));
     }
 

@@ -84,7 +84,6 @@ class ResultColumn extends Result {
 
     @Override
     public Value getValue() {
-        // TODO - make sure it shouldn't return ValueList
         throw new UnsupportedOperationException("Not a ResultSingle.");
     }
 
@@ -126,7 +125,6 @@ class ResultColumn extends Result {
 
     @Override
     public ResultSingle isNull() {
-        // TODO - this should always return false
         return new ResultSingle(new ValueBoolean(value.isNull()));
     }
 
