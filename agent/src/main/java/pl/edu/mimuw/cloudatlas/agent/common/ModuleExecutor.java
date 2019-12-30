@@ -21,14 +21,21 @@ public class ModuleExecutor implements Runnable {
 					mod.handleMessage(msg);
 				}
 			} catch (InterruptedException e) {
-				System.out.println("Executor interrupted.");
-				return;
+				System.out.println("Executor interrupted. Shutting down.");
+				System.exit(1);
+			} catch (Exception e) {
+				System.out.println("Unexpected exception in executor. Ignoring.");
+				e.printStackTrace();
 			}
 		}
 	}
 
 	public void addModule(String name, Module module) {
 		modules.put(name, module);
+	}
+
+	public void addModule(Module module) {
+		addModule(module.getDefaultName(), module);
 	}
 
 	public void pushMessage(Message message) throws InterruptedException {

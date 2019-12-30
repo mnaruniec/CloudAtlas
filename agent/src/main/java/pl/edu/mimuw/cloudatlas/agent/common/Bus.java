@@ -6,12 +6,17 @@ import java.util.Map;
 public class Bus {
 	private Map<String, ModuleExecutor> executors = new HashMap<>();
 
-	public void sendMessage(Message message) throws InterruptedException {
+	public void sendMessage(Message message) {
 		ModuleExecutor exec = executors.get(message.dest);
 		if (exec == null) {
 			System.out.println("Executor for dest module '" + message.dest + "' not found.");
 		} else {
-			exec.pushMessage(message);
+			try {
+				exec.pushMessage(message);
+			} catch (InterruptedException e) {
+				System.out.println("Executor interrupted. Shutting down.");
+				System.exit(1);
+			}
 		}
 	}
 
