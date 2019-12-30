@@ -46,3 +46,6 @@ project(':client') {
 
 project(':interpreter') {
 }
+
+project(':signer') {
+}
