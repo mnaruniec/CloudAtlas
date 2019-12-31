@@ -12,6 +12,7 @@ public class SleeperThread implements Runnable {
 
 	@Override
 	public void run() {
+		System.out.println("Timer's sleeper thread started.");
 		try {
 			synchronized (queue) {
 				while (true) {

@@ -1,10 +1,9 @@
 package pl.edu.mimuw.cloudatlas.agent;
 
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
-import pl.edu.mimuw.cloudatlas.agent.common.Constants;
 import pl.edu.mimuw.cloudatlas.agent.common.Module;
 import pl.edu.mimuw.cloudatlas.agent.common.ModuleExecutor;
-import pl.edu.mimuw.cloudatlas.agent.timer.SetTimeoutMessage;
+import pl.edu.mimuw.cloudatlas.agent.rmi.RmiModule;
 import pl.edu.mimuw.cloudatlas.agent.timer.TimerModule;
 
 import java.util.concurrent.ExecutorService;
@@ -13,10 +12,23 @@ import java.util.concurrent.TimeUnit;
 
 public class AgentMain {
 	public static void main(String[] args) {
-		Bus bus = new Bus();
-		Module[] modules = new Module[]{
-				new TimerModule(bus),
-		};
+		if (System.getSecurityManager() == null) {
+			System.setSecurityManager(new SecurityManager());
+		}
+
+		Bus bus = null;
+		Module[] modules = null;
+		try {
+			bus = new Bus();
+			modules = new Module[]{
+					new TimerModule(bus),
+					new RmiModule(bus),
+			};
+		} catch (Exception e) {
+			System.out.println("Exception in module initialization. Shutting down.");
+			e.printStackTrace();
+			System.exit(1);
+		}
 
 		ModuleExecutor[] moduleExecutors = new ModuleExecutor[modules.length];
 		for (int i = 0; i < modules.length; i++) {
@@ -25,7 +37,7 @@ public class AgentMain {
 			bus.registerModule(modules[i].getDefaultName(), moduleExecutors[i]);
 		}
 
-		System.out.println("Starting executors.");
+		System.out.println("Starting " + moduleExecutors.length + " executors.");
 		ExecutorService executorService = Executors.newFixedThreadPool(moduleExecutors.length);
 		for (ModuleExecutor exec : moduleExecutors) {
 			executorService.execute(exec);
