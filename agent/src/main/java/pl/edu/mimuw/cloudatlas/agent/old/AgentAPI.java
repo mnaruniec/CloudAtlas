@@ -1,6 +1,6 @@
-package pl.edu.mimuw.cloudatlas.agent.api;
+package pl.edu.mimuw.cloudatlas.agent.old;
 
-import pl.edu.mimuw.cloudatlas.agent.old.Agent;
+import pl.edu.mimuw.cloudatlas.agent.api.IAgentAPI;
 import pl.edu.mimuw.cloudatlas.agent.IllegalAttributeException;
 import pl.edu.mimuw.cloudatlas.agent.NoSuchZoneException;
 import pl.edu.mimuw.cloudatlas.agent.QueryParsingException;

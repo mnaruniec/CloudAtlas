@@ -24,9 +24,7 @@
 
 package pl.edu.mimuw.cloudatlas.agent.old;
 
-import pl.edu.mimuw.cloudatlas.agent.api.AgentAPI;
 import pl.edu.mimuw.cloudatlas.agent.api.IAgentAPI;
-import pl.edu.mimuw.cloudatlas.agent.old.Agent;
 import pl.edu.mimuw.cloudatlas.interpreter.cli.InterpreterUtils;
 
 import java.rmi.registry.LocateRegistry;

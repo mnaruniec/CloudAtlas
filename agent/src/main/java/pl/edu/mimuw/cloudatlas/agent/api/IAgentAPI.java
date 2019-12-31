@@ -32,7 +32,6 @@ import pl.edu.mimuw.cloudatlas.model.ValueContact;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
