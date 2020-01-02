@@ -1,4 +1,4 @@
-package pl.edu.mimuw.cloudatlas.agent.rmi;
+package pl.edu.mimuw.cloudatlas.agent.rmi.messages;
 
 import pl.edu.mimuw.cloudatlas.agent.common.Message;
 

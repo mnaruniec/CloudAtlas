@@ -5,6 +5,12 @@ import pl.edu.mimuw.cloudatlas.agent.NoSuchZoneException;
 import pl.edu.mimuw.cloudatlas.agent.QueryParsingException;
 import pl.edu.mimuw.cloudatlas.agent.api.IAgentAPI;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
+import pl.edu.mimuw.cloudatlas.agent.common.Constants;
+import pl.edu.mimuw.cloudatlas.agent.common.Message;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetFallbackContactsRequest;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetFallbackContactsResponse;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiMessage;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiSetFallbackContactsMessage;
 import pl.edu.mimuw.cloudatlas.model.Value;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
 
@@ -57,13 +63,24 @@ public class AgentAPI implements IAgentAPI {
 
 	@Override
 	public void setFallbackContacts(Set<ValueContact> contacts) throws RemoteException {
-		// TODO
+		RmiMessage message = new RmiSetFallbackContactsMessage(
+				Constants.DEFAULT_DATA_MODULE_NAME,
+				Constants.DEFAULT_RMI_MODULE_NAME,
+				getNextRequestId(),
+				contacts
+		);
+
+		bus.sendMessage(message);
 	}
 
 	@Override
 	public Set<ValueContact> getFallbackContacts() throws RemoteException {
-		// TODO
-		return null;
+		RmiMessage request = new RmiGetFallbackContactsRequest(
+				Constants.DEFAULT_DATA_MODULE_NAME,
+				Constants.DEFAULT_RMI_MODULE_NAME,
+				getNextRequestId()
+		);
+		return sendAndReceive(request, RmiGetFallbackContactsResponse.class).fallbackContacts;
 	}
 
 	public void registerResponse(RmiMessage message) {
@@ -82,7 +99,11 @@ public class AgentAPI implements IAgentAPI {
 		}
 	}
 
-	private RmiMessage sendAndReceive(RmiMessage request) {
+	private long getNextRequestId() {
+		return nextRequestId.incrementAndGet();
+	}
+
+	private <T extends RmiMessage> T sendAndReceive(RmiMessage request, Class<T> responseType) throws RemoteException {
 		long id = request.requestId;
 		CompletableFuture<RmiMessage> future = new CompletableFuture<>();
 
@@ -96,11 +117,21 @@ public class AgentAPI implements IAgentAPI {
 			System.out.println("Interrupted exception in RMI module. Shutting down.");
 			System.exit(1);
 		} catch (Exception e) {
-			System.out.println("Future execution exception in RMI module. Ignoring.");
+			System.out.println("Future execution exception in RMI module. Returning exception.");
 			e.printStackTrace();
 		} finally {
 			futureMap.remove(id);
 		}
-		return result;
+
+		if (!responseType.isInstance(result)) {
+			System.out.println("Rmi module received a response of unexpected type. Returning exception.");
+			result = null;
+		}
+
+		if (result == null) {
+			throw new RemoteException("Internal error when processing request.");
+		}
+
+		return responseType.cast(result);
 	}
 }

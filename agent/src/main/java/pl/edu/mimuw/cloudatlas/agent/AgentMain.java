@@ -3,6 +3,7 @@ package pl.edu.mimuw.cloudatlas.agent;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
 import pl.edu.mimuw.cloudatlas.agent.common.Module;
 import pl.edu.mimuw.cloudatlas.agent.common.ModuleExecutor;
+import pl.edu.mimuw.cloudatlas.agent.data.DataModule;
 import pl.edu.mimuw.cloudatlas.agent.rmi.RmiModule;
 import pl.edu.mimuw.cloudatlas.agent.timer.TimerModule;
 
@@ -23,6 +24,7 @@ public class AgentMain {
 			modules = new Module[]{
 					new TimerModule(bus),
 					new RmiModule(bus),
+					new DataModule(bus),
 			};
 		} catch (Exception e) {
 			System.out.println("Exception in module initialization. Shutting down.");

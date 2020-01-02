@@ -2,8 +2,10 @@ package pl.edu.mimuw.cloudatlas.agent.rmi;
 
 import pl.edu.mimuw.cloudatlas.agent.api.IAgentAPI;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
+import pl.edu.mimuw.cloudatlas.agent.common.Constants;
 import pl.edu.mimuw.cloudatlas.agent.common.Message;
 import pl.edu.mimuw.cloudatlas.agent.common.Module;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiMessage;
 
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -11,7 +13,7 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
 public class RmiModule extends Module {
-	AgentAPI agentAPI;
+	private AgentAPI agentAPI;
 
 	public RmiModule(Bus bus) throws RemoteException {
 		super(bus);
@@ -25,7 +27,7 @@ public class RmiModule extends Module {
 
 	@Override
 	public String getDefaultName() {
-		return "rmi";
+		return Constants.DEFAULT_RMI_MODULE_NAME;
 	}
 
 	@Override

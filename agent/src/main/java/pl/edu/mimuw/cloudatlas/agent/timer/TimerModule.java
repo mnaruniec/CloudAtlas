@@ -20,7 +20,7 @@ public class TimerModule extends Module {
 
 	@Override
 	public String getDefaultName() {
-		return Constants.DEFAULT_TIMER_NAME;
+		return Constants.DEFAULT_TIMER_MODULE_NAME;
 	}
 
 	@Override
