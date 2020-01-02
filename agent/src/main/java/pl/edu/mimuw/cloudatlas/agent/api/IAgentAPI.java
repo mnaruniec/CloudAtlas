@@ -24,9 +24,9 @@
 
 package pl.edu.mimuw.cloudatlas.agent.api;
 
-import pl.edu.mimuw.cloudatlas.agent.IllegalAttributeException;
-import pl.edu.mimuw.cloudatlas.agent.NoSuchZoneException;
-import pl.edu.mimuw.cloudatlas.agent.QueryParsingException;
+import pl.edu.mimuw.cloudatlas.agent.rmi.exceptions.IllegalAttributeException;
+import pl.edu.mimuw.cloudatlas.agent.rmi.exceptions.NoSuchZoneException;
+import pl.edu.mimuw.cloudatlas.agent.rmi.exceptions.QueryParsingException;
 import pl.edu.mimuw.cloudatlas.model.Value;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
 

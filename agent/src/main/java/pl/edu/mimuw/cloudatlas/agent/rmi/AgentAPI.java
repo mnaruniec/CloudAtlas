@@ -1,16 +1,21 @@
 package pl.edu.mimuw.cloudatlas.agent.rmi;
 
-import pl.edu.mimuw.cloudatlas.agent.IllegalAttributeException;
-import pl.edu.mimuw.cloudatlas.agent.NoSuchZoneException;
-import pl.edu.mimuw.cloudatlas.agent.QueryParsingException;
+import pl.edu.mimuw.cloudatlas.agent.rmi.exceptions.IllegalAttributeException;
+import pl.edu.mimuw.cloudatlas.agent.rmi.exceptions.NoSuchZoneException;
+import pl.edu.mimuw.cloudatlas.agent.rmi.exceptions.QueryParsingException;
 import pl.edu.mimuw.cloudatlas.agent.api.IAgentAPI;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
 import pl.edu.mimuw.cloudatlas.agent.common.Constants;
-import pl.edu.mimuw.cloudatlas.agent.common.Message;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetFallbackContactsRequest;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetFallbackContactsResponse;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetStoredZonesRequest;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetStoredZonesResponse;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetZoneAttributesRequest;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetZoneAttributesResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiMessage;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiSetFallbackContactsMessage;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesMessage;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesResponse;
 import pl.edu.mimuw.cloudatlas.model.Value;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
 
@@ -36,19 +41,50 @@ public class AgentAPI implements IAgentAPI {
 
 	@Override
 	public Set<String> getStoredZones() throws RemoteException {
-		// TODO
-		return null;
+		RmiMessage request = new RmiGetStoredZonesRequest(
+				Constants.DEFAULT_DATA_MODULE_NAME,
+				Constants.DEFAULT_RMI_MODULE_NAME,
+				getNextRequestId()
+		);
+		return sendAndReceive(request, RmiGetStoredZonesResponse.class).zones;
 	}
 
 	@Override
 	public Map<String, Value> getZoneAttributes(String zone, boolean excludeQueries) throws RemoteException, NoSuchZoneException {
-		// TODO
-		return null;
+		// TODO - consider asserting non-null
+		RmiMessage request = new RmiGetZoneAttributesRequest(
+				Constants.DEFAULT_DATA_MODULE_NAME,
+				Constants.DEFAULT_RMI_MODULE_NAME,
+				getNextRequestId(),
+				zone
+		);
+
+		RmiGetZoneAttributesResponse response = sendAndReceive(request, RmiGetZoneAttributesResponse.class);
+		if (response.attributes == null) {
+			throw new NoSuchZoneException("Zone '" + zone + "' not found.");
+		}
+		return response.attributes;
 	}
 
 	@Override
 	public void upsertZoneAttributes(String zone, Map<String, Value> attributes) throws RemoteException, NoSuchZoneException, IllegalAttributeException {
-		// TODO
+		// TODO - consider asserting non-null
+		// TODO - consider omitting response
+		RmiMessage request = new RmiUpsertZoneAttributesMessage(
+				Constants.DEFAULT_DATA_MODULE_NAME,
+				Constants.DEFAULT_RMI_MODULE_NAME,
+				getNextRequestId(),
+				zone,
+				attributes
+		);
+
+		RmiUpsertZoneAttributesResponse response = sendAndReceive(request, RmiUpsertZoneAttributesResponse.class);
+		if (response.errorType == RmiUpsertZoneAttributesResponse.ErrorType.NoSuchZone) {
+			throw new NoSuchZoneException("Zone '" + zone + "' not found.");
+		}
+		if (response.errorType == RmiUpsertZoneAttributesResponse.ErrorType.IllegalAttribute) {
+			throw new IllegalAttributeException("Tried to modify special attribute: '" + response.attribute + "'.");
+		}
 	}
 
 	@Override
@@ -63,6 +99,9 @@ public class AgentAPI implements IAgentAPI {
 
 	@Override
 	public void setFallbackContacts(Set<ValueContact> contacts) throws RemoteException {
+		if (contacts == null) {
+			throw new NullPointerException("Fallback contacts to set are null.");
+		}
 		RmiMessage message = new RmiSetFallbackContactsMessage(
 				Constants.DEFAULT_DATA_MODULE_NAME,
 				Constants.DEFAULT_RMI_MODULE_NAME,
