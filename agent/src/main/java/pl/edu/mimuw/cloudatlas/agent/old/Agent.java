@@ -59,7 +59,7 @@ import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public class Agent implements IAgentAPI {
+public class Agent {
 	private ZMI root;
 	private ReadWriteLock treeLock = new ReentrantReadWriteLock();
 	private Map<String, ZMI> zmiIndex = new HashMap<>();
@@ -80,7 +80,6 @@ public class Agent implements IAgentAPI {
 		zmiIndex.put(path.toString(), zmi);
 	}
 
-	@Override
 	public Set<String> getStoredZones() {
 		treeLock.readLock().lock();
 		try {
@@ -90,7 +89,6 @@ public class Agent implements IAgentAPI {
 		}
 	}
 
-	@Override
 	public Map<String, Value> getZoneAttributes(String zone, boolean excludeQueries) throws NoSuchZoneException {
 		treeLock.readLock().lock();
 		try {
@@ -104,7 +102,6 @@ public class Agent implements IAgentAPI {
 		}
 	}
 
-	@Override
 	public void upsertZoneAttributes(String zone, Map<String, Value> attributes) throws NoSuchZoneException, IllegalAttributeException {
 		if (attributes.containsKey(ZMI.NAME_ATTR.getName())) {
 			throw new IllegalAttributeException("Name attribute cannot be changed.");
@@ -141,7 +138,6 @@ public class Agent implements IAgentAPI {
 		}
 	}
 
-	@Override
 	public void installQuery(String name, String query) throws IllegalAttributeException, QueryParsingException {
 		Attribute attribute = new Attribute("&" + name);
 
@@ -254,7 +250,6 @@ public class Agent implements IAgentAPI {
 		}
 	}
 
-	@Override
 	public void uninstallQuery(String name) {
 		treeLock.writeLock().lock();
 		try {
@@ -274,12 +269,10 @@ public class Agent implements IAgentAPI {
 		}
 	}
 
-	@Override
 	public void setFallbackContacts(Set<ValueContact> contacts) {
 		this.fallbackContacts = new ValueSet((Set) contacts, TypePrimitive.CONTACT);
 	}
 
-	@Override
 	public Set<ValueContact> getFallbackContacts() {
 		return (Set) fallbackContacts;
 	}
