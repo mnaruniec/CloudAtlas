@@ -4,7 +4,7 @@ import pl.edu.mimuw.cloudatlas.model.ValueContact;
 
 import java.util.Set;
 
-public class RmiGetFallbackContactsResponse extends RmiMessage {
+public class RmiGetFallbackContactsResponse extends RmiResponse {
 	public final Set<ValueContact> fallbackContacts;
 
 	public RmiGetFallbackContactsResponse(String dest, String src, long requestId, Set<ValueContact> contacts) {

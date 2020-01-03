@@ -1,11 +1,10 @@
 package pl.edu.mimuw.cloudatlas.agent.rmi.messages;
 
-import pl.edu.mimuw.cloudatlas.agent.rmi.exceptions.NoSuchZoneException;
 import pl.edu.mimuw.cloudatlas.model.Value;
 
 import java.util.Map;
 
-public class RmiGetZoneAttributesResponse extends RmiMessage {
+public class RmiGetZoneAttributesResponse extends RmiResponse {
 	public final Map<String, Value> attributes;
 
 	public RmiGetZoneAttributesResponse(String dest, String src, long requestId,

@@ -5,7 +5,7 @@ import pl.edu.mimuw.cloudatlas.agent.common.Bus;
 import pl.edu.mimuw.cloudatlas.agent.common.Constants;
 import pl.edu.mimuw.cloudatlas.agent.common.Message;
 import pl.edu.mimuw.cloudatlas.agent.common.Module;
-import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiMessage;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiResponse;
 
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -32,10 +32,10 @@ public class RmiModule extends Module {
 
 	@Override
 	public void handleMessage(Message message) {
-		if (message instanceof RmiMessage) {
-			agentAPI.registerResponse((RmiMessage) message);
+		if (message instanceof RmiResponse) {
+			agentAPI.registerResponse((RmiResponse) message);
 		} else {
-			System.out.println("Rmi module received non-rmi message. Ignoring");
+			System.out.println("Rmi module received not an RmiResponse message. Ignoring");
 		}
 	}
 }

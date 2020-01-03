@@ -13,6 +13,7 @@ import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetStoredZonesResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetZoneAttributesRequest;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetZoneAttributesResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiMessage;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiSetFallbackContactsMessage;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesMessage;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesResponse;
@@ -58,12 +59,7 @@ public class AgentAPI implements IAgentAPI {
 				getNextRequestId(),
 				zone
 		);
-
-		RmiGetZoneAttributesResponse response = sendAndReceive(request, RmiGetZoneAttributesResponse.class);
-		if (response.attributes == null) {
-			throw new NoSuchZoneException("Zone '" + zone + "' not found.");
-		}
-		return response.attributes;
+		return sendAndReceive(request, RmiGetZoneAttributesResponse.class).attributes;
 	}
 
 	@Override
@@ -77,14 +73,8 @@ public class AgentAPI implements IAgentAPI {
 				zone,
 				attributes
 		);
-
-		RmiUpsertZoneAttributesResponse response = sendAndReceive(request, RmiUpsertZoneAttributesResponse.class);
-		if (response.errorType == RmiUpsertZoneAttributesResponse.ErrorType.NoSuchZone) {
-			throw new NoSuchZoneException("Zone '" + zone + "' not found.");
-		}
-		if (response.errorType == RmiUpsertZoneAttributesResponse.ErrorType.IllegalAttribute) {
-			throw new IllegalAttributeException("Tried to modify special attribute: '" + response.attribute + "'.");
-		}
+		// exception is thrown transparently
+		sendAndReceive(request, RmiUpsertZoneAttributesResponse.class);
 	}
 
 	@Override
@@ -122,16 +112,21 @@ public class AgentAPI implements IAgentAPI {
 		return sendAndReceive(request, RmiGetFallbackContactsResponse.class).fallbackContacts;
 	}
 
-	public void registerResponse(RmiMessage message) {
-		long requestId = message.requestId;
+	public void registerResponse(RmiResponse response) {
+		long requestId = response.requestId;
 		CompletableFuture<RmiMessage> future = futureMap.get(requestId);
 		if (future == null) {
 			System.out.println(
 					"Rmi module received response for non-existing request "
 					+ requestId + ". Ignoring."
 			);
-		}
-		if (!future.complete(message)) {
+		} else if (response.exception != null) {
+			if (!future.completeExceptionally(response.exception)) {
+				System.out.println(
+						"Rmi request " + requestId + " received second response (an exception). Ignoring."
+				);
+			}
+		} else if (!future.complete(response)) {
 			System.out.println(
 					"Rmi request " + requestId + " received second response. Ignoring."
 			);
@@ -155,15 +150,19 @@ public class AgentAPI implements IAgentAPI {
 		} catch (InterruptedException e) {
 			System.out.println("Interrupted exception in RMI module. Shutting down.");
 			System.exit(1);
+		} catch (RuntimeException e) {
+			System.out.println("RuntimeException in RMI module. Rethrowing.");
+			e.printStackTrace();
+			throw e;
 		} catch (Exception e) {
-			System.out.println("Future execution exception in RMI module. Returning exception.");
+			System.out.println("Future execution exception in RMI module. Throwing RemoteException.");
 			e.printStackTrace();
 		} finally {
 			futureMap.remove(id);
 		}
 
 		if (!responseType.isInstance(result)) {
-			System.out.println("Rmi module received a response of unexpected type. Returning exception.");
+			System.out.println("Rmi module received a response of unexpected type. Throwing RemoteException.");
 			result = null;
 		}
 
