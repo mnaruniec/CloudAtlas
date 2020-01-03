@@ -12,7 +12,7 @@ import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetZoneAttributesResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiMessage;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiSetFallbackContactsMessage;
-import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesMessage;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesRequest;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesResponse;
 import pl.edu.mimuw.cloudatlas.model.Value;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
@@ -63,7 +63,7 @@ public class AgentAPI implements IAgentAPI {
 	public void upsertZoneAttributes(String zone, Map<String, Value> attributes) throws RemoteException {
 		// TODO - consider asserting non-null
 		// TODO - consider omitting response
-		RmiMessage request = new RmiUpsertZoneAttributesMessage(
+		RmiMessage request = new RmiUpsertZoneAttributesRequest(
 				Constants.DEFAULT_DATA_MODULE_NAME,
 				Constants.DEFAULT_RMI_MODULE_NAME,
 				getNextRequestId(),

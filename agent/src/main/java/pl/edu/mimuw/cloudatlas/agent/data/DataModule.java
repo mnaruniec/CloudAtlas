@@ -13,6 +13,7 @@ import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetZoneAttributesResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiMessage;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiSetFallbackContactsMessage;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesRequest;
 import pl.edu.mimuw.cloudatlas.model.PathName;
 import pl.edu.mimuw.cloudatlas.model.ZMI;
 
@@ -49,6 +50,8 @@ public class DataModule extends Module {
 				handleRmiGetStoredZonesRequest((RmiGetStoredZonesRequest) message);
 			} else if (message instanceof RmiGetZoneAttributesRequest) {
 				handleRmiGetZoneAttributesRequest((RmiGetZoneAttributesRequest) message);
+			} else if (message instanceof RmiUpsertZoneAttributesRequest) {
+				handleRmiUpsertZoneAttributesRequest((RmiUpsertZoneAttributesRequest) message);
 			} else {
 				System.out.println("Received unexpected type of RMI message in data module. Ignoring");
 			}
@@ -90,6 +93,10 @@ public class DataModule extends Module {
 		}
 
 		bus.sendMessage(response);
+	}
+
+	private void handleRmiUpsertZoneAttributesRequest(RmiUpsertZoneAttributesRequest request) {
+		// TODO
 	}
 
 	private void handleRmiGetFallbackContactsRequest(RmiGetFallbackContactsRequest request) {
