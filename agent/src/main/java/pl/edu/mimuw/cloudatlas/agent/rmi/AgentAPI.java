@@ -1,8 +1,5 @@
 package pl.edu.mimuw.cloudatlas.agent.rmi;
 
-import pl.edu.mimuw.cloudatlas.agent.rmi.exceptions.IllegalAttributeException;
-import pl.edu.mimuw.cloudatlas.agent.rmi.exceptions.NoSuchZoneException;
-import pl.edu.mimuw.cloudatlas.agent.rmi.exceptions.QueryParsingException;
 import pl.edu.mimuw.cloudatlas.agent.api.IAgentAPI;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
 import pl.edu.mimuw.cloudatlas.agent.common.Constants;
@@ -51,7 +48,7 @@ public class AgentAPI implements IAgentAPI {
 	}
 
 	@Override
-	public Map<String, Value> getZoneAttributes(String zone, boolean excludeQueries) throws RemoteException, NoSuchZoneException {
+	public Map<String, Value> getZoneAttributes(String zone, boolean excludeQueries) throws RemoteException {
 		// TODO - consider asserting non-null
 		RmiMessage request = new RmiGetZoneAttributesRequest(
 				Constants.DEFAULT_DATA_MODULE_NAME,
@@ -63,7 +60,7 @@ public class AgentAPI implements IAgentAPI {
 	}
 
 	@Override
-	public void upsertZoneAttributes(String zone, Map<String, Value> attributes) throws RemoteException, NoSuchZoneException, IllegalAttributeException {
+	public void upsertZoneAttributes(String zone, Map<String, Value> attributes) throws RemoteException {
 		// TODO - consider asserting non-null
 		// TODO - consider omitting response
 		RmiMessage request = new RmiUpsertZoneAttributesMessage(
@@ -78,7 +75,7 @@ public class AgentAPI implements IAgentAPI {
 	}
 
 	@Override
-	public void installQuery(String name, String query) throws RemoteException, IllegalAttributeException, QueryParsingException {
+	public void installQuery(String name, String query) throws RemoteException {
 		// TODO
 	}
 

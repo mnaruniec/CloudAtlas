@@ -1,9 +1,6 @@
 package pl.edu.mimuw.client.services;
 
 import org.springframework.stereotype.Service;
-import pl.edu.mimuw.cloudatlas.agent.rmi.exceptions.IllegalAttributeException;
-import pl.edu.mimuw.cloudatlas.agent.rmi.exceptions.NoSuchZoneException;
-import pl.edu.mimuw.cloudatlas.agent.rmi.exceptions.QueryParsingException;
 import pl.edu.mimuw.cloudatlas.agent.api.IAgentAPI;
 import pl.edu.mimuw.cloudatlas.model.Value;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
@@ -40,19 +37,19 @@ public class AgentService implements IAgentAPI {
 
 	@Override
 	public Map<String, Value> getZoneAttributes(String zone, boolean excludeQueries)
-			throws RemoteException, NoSuchZoneException {
+			throws RemoteException {
 		return agentAPI.getZoneAttributes(zone, excludeQueries);
 	}
 
 	@Override
 	public void upsertZoneAttributes(String zone, Map<String, Value> attributes)
-			throws RemoteException, NoSuchZoneException, IllegalAttributeException {
+			throws RemoteException {
 		agentAPI.upsertZoneAttributes(zone, attributes);
 	}
 
 	@Override
 	public void installQuery(String name, String query)
-			throws RemoteException, IllegalAttributeException, QueryParsingException {
+			throws RemoteException {
 		agentAPI.installQuery(name, query);
 	}
 
