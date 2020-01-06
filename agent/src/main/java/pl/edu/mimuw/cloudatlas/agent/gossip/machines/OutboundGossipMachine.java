@@ -3,7 +3,9 @@ package pl.edu.mimuw.cloudatlas.agent.gossip.machines;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
 import pl.edu.mimuw.cloudatlas.agent.common.Constants;
 import pl.edu.mimuw.cloudatlas.agent.common.Message;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.FreshnessInfo;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetFreshnessInfoRequest;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetFreshnessInfoResponse;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipTargetResponse;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
 
@@ -19,6 +21,7 @@ public class OutboundGossipMachine implements GossipStateMachine {
 
 	private State state = State.ExpectGossipTarget;
 	private ValueContact target;
+	private FreshnessInfo localFreshnessInfo;
 
 	public final long machineId;
 	private Bus bus;
@@ -30,10 +33,18 @@ public class OutboundGossipMachine implements GossipStateMachine {
 
 	@Override
 	public void handleMessage(Message message) {
-		if (message instanceof GetGossipTargetResponse) {
-			handleGetGossipTargetResponse((GetGossipTargetResponse) message);
-		} else {
-			System.out.println("Outbound state machine got unhandled message type. Ignoring.");
+		try {
+			if (message instanceof GetGossipTargetResponse) {
+				handleGetGossipTargetResponse((GetGossipTargetResponse) message);
+			} else if (message instanceof GetFreshnessInfoResponse) {
+				handleGetFreshnessInfoResponse((GetFreshnessInfoResponse) message);
+			} else {
+				System.out.println("Outbound state machine got unhandled message type. Ignoring.");
+			}
+		} catch (Exception e) {
+			System.out.println("Unexpected error thrown in OutboundGossipMachine. Finishing gossip.");
+			e.printStackTrace();
+			finish();
 		}
 	}
 
@@ -68,8 +79,20 @@ public class OutboundGossipMachine implements GossipStateMachine {
 		}
 	}
 
+	private void handleGetFreshnessInfoResponse(GetFreshnessInfoResponse response) {
+		if (state != State.ExpectLocalFreshnessInfo) {
+			System.out.println("Received local freshness info in state: " + state + ". Ignoring.");
+			return;
+		}
+
+		this.localFreshnessInfo = response.freshnessInfo;
+		// TODO - schedule resending
+	}
+
 	private void finish() {
-		state = State.Finished;
-		// TODO - reschedule gossip
+		if (state != State.Finished) {
+			state = State.Finished;
+			// TODO - reschedule gossip
+		}
 	}
 }
