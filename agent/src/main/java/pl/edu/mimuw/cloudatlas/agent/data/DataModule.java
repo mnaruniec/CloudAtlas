@@ -4,6 +4,10 @@ import pl.edu.mimuw.cloudatlas.agent.common.Bus;
 import pl.edu.mimuw.cloudatlas.agent.common.Constants;
 import pl.edu.mimuw.cloudatlas.agent.common.Message;
 import pl.edu.mimuw.cloudatlas.agent.common.Module;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.FreshnessInfo;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetFreshnessInfoRequest;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetFreshnessInfoResponse;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipTargetRequest;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetFallbackContactsRequest;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetFallbackContactsResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetStoredZonesRequest;
@@ -17,7 +21,14 @@ import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesRequest
 import pl.edu.mimuw.cloudatlas.model.PathName;
 import pl.edu.mimuw.cloudatlas.model.ZMI;
 
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class DataModule extends Module {
 	private DataModel model = new DataModel();
@@ -35,8 +46,56 @@ public class DataModule extends Module {
 	public void handleMessage(Message message) {
 		if (message instanceof RmiMessage) {
 			handleRmiMessage((RmiMessage) message);
+		} else if (message instanceof GetGossipTargetRequest) {
+			handleGetGossipTargetRequest((GetGossipTargetRequest) message);
+		} else if (message instanceof GetFreshnessInfoRequest) {
+			handleGetFreshnessInfoRequest((GetFreshnessInfoRequest) message);
 		} else {
-			System.out.println("Received unexpected type of message in data module. Ignoring");
+			System.out.println("Received unexpected type of message in data module. Ignoring.");
+		}
+	}
+
+	private void handleGetGossipTargetRequest(GetGossipTargetRequest request) {
+
+	}
+
+	private void handleGetFreshnessInfoRequest(GetFreshnessInfoRequest request) {
+		FreshnessInfo freshnessInfo = null;
+		Map<String, Long> zmiTimestamps = new HashMap<>();
+		Deque<String> path = new LinkedList<>();
+
+		try {
+			if (model.root != null) {
+				getFreshnessInfo(model.root, zmiTimestamps, path, new ArrayList<>(request.pathName.getComponents()));
+			}
+			freshnessInfo = new FreshnessInfo(zmiTimestamps);
+		} catch (Exception e) {
+			System.out.println("Exception occured in data module when collecting freshness info. Returning null.");
+			e.printStackTrace();
+		}
+
+		bus.sendMessage(new GetFreshnessInfoResponse(
+				request,
+				freshnessInfo
+		));
+	}
+
+	private void getFreshnessInfo(ZMI zmi, Map<String, Long> zmiTimestamps, Deque<String> path, List<String> targetPath) {
+		int depth = path.size();
+		if (depth >= targetPath.size()) {
+			return;
+		}
+		for (ZMI son: zmi.getSons()) {
+			String sonName = son.getName();
+			path.addLast(sonName);
+			if (targetPath.get(depth).equals(sonName)) {
+				if (path.size() < targetPath.size()) {
+					getFreshnessInfo(son, zmiTimestamps, path, targetPath);
+				}
+			} else {
+				zmiTimestamps.put(new PathName(path).getName(), son.getTimestamp());
+			}
+			path.removeLast();
 		}
 	}
 
@@ -53,7 +112,7 @@ public class DataModule extends Module {
 			} else if (message instanceof RmiUpsertZoneAttributesRequest) {
 				handleRmiUpsertZoneAttributesRequest((RmiUpsertZoneAttributesRequest) message);
 			} else {
-				System.out.println("Received unexpected type of RMI message in data module. Ignoring");
+				System.out.println("Received unexpected type of RMI message in data module. Ignoring.");
 			}
 		} catch (RuntimeException e) {
 			System.out.println(

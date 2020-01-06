@@ -36,6 +36,7 @@ import java.util.Map.Entry;
  */
 public class ZMI implements Cloneable {
 	public static final Attribute NAME_ATTR = new Attribute("name");
+	public static final Attribute TIMESTAMP_ATTR = new Attribute("timestamp");
 
 	private final AttributesMap attributes = new AttributesMap();
 	
@@ -168,5 +169,9 @@ public class ZMI implements Cloneable {
 
 	public String getName() {
 		return ((ValueString)getAttributes().get(ZMI.NAME_ATTR)).getValue();
+	}
+
+	public long getTimestamp() {
+		return ((ValueTime)getAttributes().get(ZMI.TIMESTAMP_ATTR)).getValue();
 	}
 }

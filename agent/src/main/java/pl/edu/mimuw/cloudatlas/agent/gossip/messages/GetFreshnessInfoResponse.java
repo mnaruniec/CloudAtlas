@@ -7,4 +7,8 @@ public class GetFreshnessInfoResponse extends GossipMachineIdMessage {
 		super(dest, src, machineId);
 		this.freshnessInfo = freshnessInfo;
 	}
+
+	public GetFreshnessInfoResponse(GetFreshnessInfoRequest request, FreshnessInfo freshnessInfo) {
+		this(request.src, request.dest, request.machineId, freshnessInfo);
+	}
 }

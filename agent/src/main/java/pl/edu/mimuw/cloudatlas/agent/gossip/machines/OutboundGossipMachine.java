@@ -85,8 +85,13 @@ public class OutboundGossipMachine implements GossipStateMachine {
 			return;
 		}
 
-		this.localFreshnessInfo = response.freshnessInfo;
-		// TODO - schedule resending
+		localFreshnessInfo = response.freshnessInfo;
+		if (localFreshnessInfo == null) {
+			System.out.println("Received null as local freshness info. Finishing gossip.");
+			finish();
+		}
+		// TODO - schedule resending packets
+		// TODO - send packet
 	}
 
 	private void finish() {
