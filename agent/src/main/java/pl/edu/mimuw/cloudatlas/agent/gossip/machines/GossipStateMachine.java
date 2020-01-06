@@ -6,4 +6,6 @@ public interface GossipStateMachine {
 	void handleMessage(Message message);
 
 	boolean isFinished();
+
+	long getMachineId();
 }

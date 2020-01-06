@@ -3,7 +3,7 @@ package pl.edu.mimuw.cloudatlas.agent.gossip.messages;
 import pl.edu.mimuw.cloudatlas.agent.common.Message;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
 
-public class GetGossipTargetResponse extends Message {
+public class GetGossipTargetResponse extends OutboundGossipMachineMessage {
 	public final ValueContact contact;
 
 	public GetGossipTargetResponse(String dest, String src, ValueContact contact) {
