@@ -24,43 +24,48 @@ public class Transmission {
 	}
 
 	public void insertDatagram(DatagramPacket datagram) {
-		ByteBuffer byteBuffer = ByteBuffer.wrap(
-				datagram.getData(),
-				datagram.getOffset() + 4,
-				datagram.getLength()
-		);
-
-		int sequenceNum = byteBuffer.getInt();
-		if (sequenceNum == 0) {
-			if (datagram.getLength() < CommModule.FIRST_HEADER_SIZE) {
-				finishWithError("Transmission received first packet with too short header.");
-				return;
-			}
-			numDatagrams = byteBuffer.getInt();
-			if (numDatagrams <= 0) {
-				finishWithError("Transmission received first packet with non-positive datagrams number value.");
-				return;
-			}
-		} else if (sequenceNum < 0) {
-			finishWithError("Transmission received packet with negative sequence number.");
-			return;
-		} else if (numDatagrams != 0 && sequenceNum >= numDatagrams) {
-			finishWithError(
-					"Transmission received packet with sequence number "
-					+ sequenceNum + ", expected only "
-					+ numDatagrams + " datagrams."
+		try {
+			ByteBuffer byteBuffer = ByteBuffer.wrap(
+					datagram.getData(),
+					datagram.getOffset() + 4,
+					datagram.getLength()
 			);
-			return;
+
+			int sequenceNum = byteBuffer.getInt();
+			if (sequenceNum == 0) {
+				if (datagram.getLength() < CommModule.FIRST_HEADER_SIZE) {
+					finishWithError("Transmission received first packet with too short header.");
+					return;
+				}
+				numDatagrams = byteBuffer.getInt();
+				if (numDatagrams <= 0) {
+					finishWithError("Transmission received first packet with non-positive datagrams number value.");
+					return;
+				}
+			} else if (sequenceNum < 0) {
+				finishWithError("Transmission received packet with negative sequence number.");
+				return;
+			} else if (numDatagrams != 0 && sequenceNum >= numDatagrams) {
+				finishWithError(
+						"Transmission received packet with sequence number "
+								+ sequenceNum + ", expected only "
+								+ numDatagrams + " datagrams."
+				);
+				return;
+			}
+
+			if (datagramMap.containsKey(sequenceNum)) {
+				finishWithError("Transmission received packet with duplicate sequence number.");
+				return;
+			}
+
+			datagramMap.put(sequenceNum, datagram);
+
+			finishIfNeeded();
+		} catch (Exception e) {
+			finishWithError("Unexpected exception caught when inserting datagram to transmission.");
+			e.printStackTrace();
 		}
-
-		if (datagramMap.containsKey(sequenceNum)) {
-			finishWithError("Transmission received packet with duplicate sequence number.");
-			return;
-		}
-
-		datagramMap.put(sequenceNum, datagram);
-
-		finishIfNeeded();
 	}
 
 	public boolean isFinished() {

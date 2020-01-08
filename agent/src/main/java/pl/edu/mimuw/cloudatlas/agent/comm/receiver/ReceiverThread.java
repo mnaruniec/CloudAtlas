@@ -26,8 +26,13 @@ public class ReceiverThread implements Runnable {
 	@Override
 	public void run() {
 		while (true) {
-			DatagramPacket datagram = receiveDatagram();
-			processDatagram(datagram);
+			try {
+				DatagramPacket datagram = receiveDatagram();
+				processDatagram(datagram);
+			} catch (Exception e) {
+				System.out.println("Unexpected exception caught in communication receiver thread. Ignoring.");
+				e.printStackTrace();
+			}
 		}
 	}
 

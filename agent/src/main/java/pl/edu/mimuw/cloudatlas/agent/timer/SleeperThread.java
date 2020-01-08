@@ -13,9 +13,9 @@ public class SleeperThread implements Runnable {
 	@Override
 	public void run() {
 		System.out.println("Timer's sleeper thread started.");
-		try {
-			synchronized (queue) {
-				while (true) {
+		synchronized (queue) {
+			while (true) {
+				try {
 					if (queue.isEmpty()) {
 						queue.wait();
 					} else {
@@ -28,11 +28,15 @@ public class SleeperThread implements Runnable {
 							msg.callback.run();
 						}
 					}
+				} catch (InterruptedException e) {
+					System.out.println("Timer's sleeper thread interrupted. Shutting down.");
+					System.exit(1);
+				} catch (Exception e) {
+					System.out.println("Unexpected exception caught in timer's sleeper thread. Ignoring.");
+					e.printStackTrace();
 				}
 			}
-		} catch (InterruptedException e) {
-			System.out.println("Timer's sleeper thread interrupted. Shutting down.");
-			System.exit(1);
 		}
+
 	}
 }
