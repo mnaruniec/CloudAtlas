@@ -73,7 +73,7 @@ public class ReceiverThread implements Runnable {
 				socket.receive(packet);
 				return packet;
 			} catch (Exception e) {
-				System.out.println("IOException in socket.receive. Trying to open new socket.");
+				System.out.println("Exception in socket.receive. Trying to open new socket.");
 				e.printStackTrace();
 				restoreSocket();
 			}
