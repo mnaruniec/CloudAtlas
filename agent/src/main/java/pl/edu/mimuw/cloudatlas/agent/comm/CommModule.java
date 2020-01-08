@@ -1,5 +1,7 @@
 package pl.edu.mimuw.cloudatlas.agent.comm;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.util.Pool;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.OutNetworkMessage;
 import pl.edu.mimuw.cloudatlas.agent.comm.receiver.ReceiverThread;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
@@ -20,6 +22,7 @@ public class CommModule extends Module {
 	public static final int FIRST_HEADER_ADDITION = 4;
 	public static final int FIRST_HEADER_SIZE = MIN_HEADER_SIZE + FIRST_HEADER_ADDITION;
 
+	private Pool<Kryo> kryoPool;
 	private ExecutorService executorService = Executors.newFixedThreadPool(2);
 	private ReceiverThread receiver;
 	private SenderThread sender;
@@ -27,8 +30,9 @@ public class CommModule extends Module {
 
 	public CommModule(Bus bus) throws SocketException {
 		super(bus);
-		this.receiver = new ReceiverThread(bus);
-		this.sender = new SenderThread(senderQueue);
+		initializeKryo();
+		this.receiver = new ReceiverThread(bus, kryoPool.obtain());
+		this.sender = new SenderThread(kryoPool.obtain(), senderQueue);
 	}
 
 	@Override
@@ -58,5 +62,16 @@ public class CommModule extends Module {
 			System.out.println("Comm module interrupted. Shutting down.");
 			System.exit(1);
 		}
+	}
+
+	private void initializeKryo() {
+		kryoPool = new Pool<Kryo>(true, false, 2) {
+			@Override
+			protected Kryo create() {
+				Kryo kryo = new Kryo();
+
+				return kryo;
+			}
+		};
 	}
 }

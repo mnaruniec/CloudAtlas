@@ -1,5 +1,6 @@
 package pl.edu.mimuw.cloudatlas.agent.comm;
 
+import com.esotericsoftware.kryo.Kryo;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.OutNetworkMessage;
 import pl.edu.mimuw.cloudatlas.agent.common.Message;
 
@@ -16,11 +17,12 @@ public class SenderThread implements Runnable {
 
 	public Random random = new Random();
 
+	private Kryo kryo;
 	private BlockingQueue<OutNetworkMessage> queue;
-
 	private DatagramSocket socket;
 
-	public SenderThread(BlockingQueue<OutNetworkMessage> queue) throws SocketException {
+	public SenderThread(Kryo kryo, BlockingQueue<OutNetworkMessage> queue) throws SocketException {
+		this.kryo = kryo;
 		this.queue = queue;
 		this.socket = new DatagramSocket();
 	}

@@ -1,5 +1,8 @@
 package pl.edu.mimuw.cloudatlas.agent;
 
+import pl.edu.mimuw.cloudatlas.agent.comm.CommModule;
+import pl.edu.mimuw.cloudatlas.agent.comm.messages.OutNetworkMessage;
+import pl.edu.mimuw.cloudatlas.agent.comm.messages.Payload;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
 import pl.edu.mimuw.cloudatlas.agent.common.Module;
 import pl.edu.mimuw.cloudatlas.agent.common.ModuleExecutor;
@@ -7,12 +10,14 @@ import pl.edu.mimuw.cloudatlas.agent.data.DataModule;
 import pl.edu.mimuw.cloudatlas.agent.rmi.RmiModule;
 import pl.edu.mimuw.cloudatlas.agent.timer.TimerModule;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class AgentMain {
-	public static void main(String[] args) {
+	public static void main(String[] args) throws UnknownHostException {
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
 		}
@@ -26,6 +31,7 @@ public class AgentMain {
 					new TimerModule(bus),
 					new RmiModule(bus),
 					new DataModule(bus),
+					new CommModule(bus),
 			};
 
 			moduleExecutors = new ModuleExecutor[modules.length];
@@ -51,6 +57,9 @@ public class AgentMain {
 		}
 		System.out.println("Executors started.");
 
+//		bus.sendMessage(new OutNetworkMessage("comm", "main", InetAddress.getByName("127.0.0.1"),
+//				new Payload() {}
+//				));
 		try {
 			while (!executorService.awaitTermination(60, TimeUnit.HOURS)) {
 				// sleep forever

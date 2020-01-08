@@ -1,5 +1,6 @@
 package pl.edu.mimuw.cloudatlas.agent.comm.receiver;
 
+import com.esotericsoftware.kryo.Kryo;
 import pl.edu.mimuw.cloudatlas.agent.comm.CommModule;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
 
@@ -12,13 +13,15 @@ public class Transmission {
 	public final TransmissionId transmissionId;
 
 	private Bus bus;
+	private Kryo kryo;
 	private int numDatagrams = 0;
 	private boolean finished = false;
 
 	private Map<Integer, DatagramPacket> datagramMap = new HashMap<>();
 
-	public Transmission(Bus bus, TransmissionId transmissionId) {
+	public Transmission(Bus bus, Kryo kryo, TransmissionId transmissionId) {
 		this.bus = bus;
+		this.kryo = kryo;
 		this.transmissionId = transmissionId;
 		// TODO - register cleaning
 	}

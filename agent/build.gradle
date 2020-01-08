@@ -7,9 +7,14 @@ plugins {
     id 'application'
 }
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     implementation files('../lib/cup.jar')
     implementation files('../lib/JLex.jar')
+    implementation "com.esotericsoftware:kryo:5.0.0-RC4"
     implementation project(':common')
 }
 

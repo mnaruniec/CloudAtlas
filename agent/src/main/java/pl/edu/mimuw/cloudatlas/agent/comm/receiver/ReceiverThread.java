@@ -1,5 +1,6 @@
 package pl.edu.mimuw.cloudatlas.agent.comm.receiver;
 
+import com.esotericsoftware.kryo.Kryo;
 import pl.edu.mimuw.cloudatlas.agent.comm.CommModule;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
 
@@ -14,12 +15,14 @@ public class ReceiverThread implements Runnable {
 	public static final long SOCKET_CREATION_INTERVAL_MS = 1000;
 
 	private Bus bus;
+	private Kryo kryo;
 	private DatagramSocket socket;
 
 	private Map<TransmissionId, Transmission> transmissionMap = new ConcurrentHashMap<>();
 
-	public ReceiverThread(Bus bus) throws SocketException {
+	public ReceiverThread(Bus bus, Kryo kryo) throws SocketException {
 		this.bus = bus;
+		this.kryo = kryo;
 		this.socket = new DatagramSocket(CommModule.RECEIVER_PORT);
 	}
 
@@ -54,7 +57,7 @@ public class ReceiverThread implements Runnable {
 
 		Transmission transmission = transmissionMap.computeIfAbsent(
 				transmissionId,
-				key -> new Transmission(bus, transmissionId)
+				key -> new Transmission(bus, kryo, transmissionId)
 		);
 
 		insertDatagram(transmission, datagram);

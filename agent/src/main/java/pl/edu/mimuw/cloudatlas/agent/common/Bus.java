@@ -9,7 +9,7 @@ public class Bus {
 	public void sendMessage(Message message) {
 		ModuleExecutor exec = executors.get(message.dest);
 		if (exec == null) {
-			System.out.println("Executor for dest module '" + message.dest + "' not found.");
+			System.out.println("Executor for dest module '" + message.dest + "' not found. Ignoring.");
 		} else {
 			try {
 				exec.pushMessage(message);
