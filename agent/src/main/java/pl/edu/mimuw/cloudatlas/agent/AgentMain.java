@@ -19,6 +19,7 @@ public class AgentMain {
 
 		Bus bus = null;
 		Module[] modules = null;
+		ModuleExecutor[] moduleExecutors = null;
 		try {
 			bus = new Bus();
 			modules = new Module[]{
@@ -26,17 +27,21 @@ public class AgentMain {
 					new RmiModule(bus),
 					new DataModule(bus),
 			};
+
+			moduleExecutors = new ModuleExecutor[modules.length];
+			for (int i = 0; i < modules.length; i++) {
+				moduleExecutors[i] = new ModuleExecutor();
+				moduleExecutors[i].addModule(modules[i]);
+				bus.registerModule(modules[i].getDefaultName(), moduleExecutors[i]);
+			}
+
+			for (Module module: modules) {
+				module.init();
+			}
 		} catch (Exception e) {
 			System.out.println("Exception in module initialization. Shutting down.");
 			e.printStackTrace();
 			System.exit(1);
-		}
-
-		ModuleExecutor[] moduleExecutors = new ModuleExecutor[modules.length];
-		for (int i = 0; i < modules.length; i++) {
-			moduleExecutors[i] = new ModuleExecutor();
-			moduleExecutors[i].addModule(modules[i]);
-			bus.registerModule(modules[i].getDefaultName(), moduleExecutors[i]);
 		}
 
 		System.out.println("Starting " + moduleExecutors.length + " executors.");
@@ -51,7 +56,7 @@ public class AgentMain {
 				// sleep forever
 			}
 			System.out.println("All executors finished work.");
-		} catch(InterruptedException e) {
+		} catch (InterruptedException e) {
 			System.out.println("Main thread interrupted.");
 		} finally {
 			System.out.println("Shutting down.");

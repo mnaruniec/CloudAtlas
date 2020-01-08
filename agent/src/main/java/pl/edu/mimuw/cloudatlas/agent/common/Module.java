@@ -9,5 +9,8 @@ public abstract class Module {
 
 	public abstract String getDefaultName();
 
+	public void init() throws Exception {
+	}
+
 	public abstract void handleMessage(Message message);
 }

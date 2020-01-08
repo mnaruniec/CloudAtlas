@@ -18,6 +18,11 @@ public class RmiModule extends Module {
 	public RmiModule(Bus bus) throws RemoteException {
 		super(bus);
 		agentAPI = new AgentAPI(bus);
+
+	}
+
+	@Override
+	public void init() throws RemoteException {
 		IAgentAPI stub =
 				(IAgentAPI) UnicastRemoteObject.exportObject(agentAPI, 0);
 		Registry registry = LocateRegistry.getRegistry();
