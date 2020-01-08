@@ -1,9 +1,17 @@
 package pl.edu.mimuw.cloudatlas.agent.comm;
 
+import pl.edu.mimuw.cloudatlas.agent.comm.messages.OutNetworkMessage;
+import pl.edu.mimuw.cloudatlas.agent.comm.receiver.ReceiverThread;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
 import pl.edu.mimuw.cloudatlas.agent.common.Constants;
 import pl.edu.mimuw.cloudatlas.agent.common.Message;
 import pl.edu.mimuw.cloudatlas.agent.common.Module;
+
+import java.net.SocketException;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class CommModule extends Module {
 	public static final int RECEIVER_PORT = 31337;
@@ -12,8 +20,21 @@ public class CommModule extends Module {
 	public static final int FIRST_HEADER_ADDITION = 4;
 	public static final int FIRST_HEADER_SIZE = MIN_HEADER_SIZE + FIRST_HEADER_ADDITION;
 
-	public CommModule(Bus bus) {
+	private ExecutorService executorService = Executors.newFixedThreadPool(2);
+	private ReceiverThread receiver;
+	private SenderThread sender;
+	private BlockingQueue<OutNetworkMessage> senderQueue = new LinkedBlockingQueue<>();
+
+	public CommModule(Bus bus) throws SocketException {
 		super(bus);
+		this.receiver = new ReceiverThread(bus);
+		this.sender = new SenderThread(senderQueue);
+	}
+
+	@Override
+	public void init() {
+		executorService.submit(receiver);
+		executorService.submit(sender);
 	}
 
 	@Override
@@ -23,6 +44,19 @@ public class CommModule extends Module {
 
 	@Override
 	public void handleMessage(Message message) {
+		if (message instanceof OutNetworkMessage) {
+			handleOutNetworkMessage((OutNetworkMessage) message);
+		} else {
+			System.out.println("Comm module received message of unhandled type. Ignoring.");
+		}
+	}
 
+	private void handleOutNetworkMessage(OutNetworkMessage message) {
+		try {
+			senderQueue.put(message);
+		} catch (InterruptedException e) {
+			System.out.println("Comm module interrupted. Shutting down.");
+			System.exit(1);
+		}
 	}
 }

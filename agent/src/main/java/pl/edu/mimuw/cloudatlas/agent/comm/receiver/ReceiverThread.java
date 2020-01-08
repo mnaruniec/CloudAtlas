@@ -25,6 +25,7 @@ public class ReceiverThread implements Runnable {
 
 	@Override
 	public void run() {
+		System.out.println("Communication receiver thread started.");
 		while (true) {
 			try {
 				DatagramPacket datagram = receiveDatagram();
