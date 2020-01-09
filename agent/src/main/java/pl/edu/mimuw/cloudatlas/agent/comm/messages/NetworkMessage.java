@@ -1,5 +1,6 @@
 package pl.edu.mimuw.cloudatlas.agent.comm.messages;
 
+import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.Payload;
 import pl.edu.mimuw.cloudatlas.agent.common.Message;
 
 public abstract class NetworkMessage extends Message {
