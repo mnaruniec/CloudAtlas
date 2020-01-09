@@ -1,5 +1,8 @@
 package pl.edu.mimuw.cloudatlas.agent.gossip;
 
+import pl.edu.mimuw.cloudatlas.agent.comm.messages.InNetworkMessage;
+import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.NetworkRequestPayload;
+import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.NetworkResponsePayload;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
 import pl.edu.mimuw.cloudatlas.agent.common.Constants;
 import pl.edu.mimuw.cloudatlas.agent.common.Message;
@@ -7,7 +10,6 @@ import pl.edu.mimuw.cloudatlas.agent.common.Module;
 import pl.edu.mimuw.cloudatlas.agent.gossip.machines.GossipStateMachine;
 import pl.edu.mimuw.cloudatlas.agent.gossip.machines.OutboundGossipMachine;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipTargetRequest;
-import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipTargetResponse;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GossipMachineIdMessage;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.InitiateGossipMessage;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.OutboundGossipMachineMessage;
@@ -34,6 +36,8 @@ public class GossipModule extends Module {
 	public void handleMessage(Message message) {
 		if (message instanceof GossipMachineIdMessage) {
 			handleGossipMachineIdMessage((GossipMachineIdMessage) message);
+		} else if (message instanceof InNetworkMessage) {
+			handleInNetworkMessage((InNetworkMessage) message);
 		} else if (message instanceof OutboundGossipMachineMessage) {
 			handleOutboundGossipMachineMessage((OutboundGossipMachineMessage) message);
 		} else if (message instanceof InitiateGossipMessage) {
@@ -52,18 +56,24 @@ public class GossipModule extends Module {
 					+ machineId + ". Ignoring."
 			);
 		} else {
-			machine.handleMessage(message);
-			checkMachineFinished(machine);
+			passToMachine(machine, message);
+		}
+	}
+
+	private void handleInNetworkMessage(InNetworkMessage message) {
+		if (message.payload instanceof NetworkResponsePayload) {
+			passToOutboundMachine(message);
+		} else if (message.payload instanceof NetworkRequestPayload) {
+			passToInboundMachine(message);
+		} else {
+			System.out.println(
+					"Gossip module received unhandled InNetworkMessage. Ignoring."
+			);
 		}
 	}
 
 	private void handleOutboundGossipMachineMessage(OutboundGossipMachineMessage message) {
-		if (outboundMachine == null) {
-			System.out.println("Gossip module received message for outbound machine, but it does not exist.");
-		} else {
-			outboundMachine.handleMessage(message);
-			checkMachineFinished(outboundMachine);
-		}
+		passToOutboundMachine(message);
 	}
 
 	private void handleInitiateGossipMessage(InitiateGossipMessage message) {
@@ -83,6 +93,23 @@ public class GossipModule extends Module {
 		bus.sendMessage(new GetGossipTargetRequest(
 				Constants.DEFAULT_DATA_MODULE_NAME, getDefaultName()
 		));
+	}
+
+	private void passToOutboundMachine(Message message) {
+		if (outboundMachine == null) {
+			System.out.println("Gossip module received message for outbound machine, but it does not exist. Ignoring.");
+		} else {
+			passToMachine(outboundMachine, message);
+		}
+	}
+
+	private void passToInboundMachine(Message message) {
+		// TODO
+	}
+
+	private void passToMachine(GossipStateMachine machine, Message message) {
+		machine.handleMessage(message);
+		checkMachineFinished(machine);
 	}
 
 	private void checkMachineFinished(GossipStateMachine machine) {

@@ -9,6 +9,7 @@ public abstract class Module {
 
 	public abstract String getDefaultName();
 
+	// should be run after all modules are registered, but before executors are started
 	public void init() throws Exception {
 	}
 
