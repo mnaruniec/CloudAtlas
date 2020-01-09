@@ -65,13 +65,6 @@ public class CommModule extends Module {
 	}
 
 	private void initializeKryo() {
-		kryoPool = new Pool<Kryo>(true, false, 2) {
-			@Override
-			protected Kryo create() {
-				Kryo kryo = new Kryo();
-
-				return kryo;
-			}
-		};
+		kryoPool = new KryoPool();
 	}
 }
