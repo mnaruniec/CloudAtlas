@@ -1,8 +1,12 @@
 package pl.edu.mimuw.cloudatlas.agent.comm.receiver;
 
 import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
 import pl.edu.mimuw.cloudatlas.agent.comm.CommModule;
+import pl.edu.mimuw.cloudatlas.agent.comm.messages.InNetworkMessage;
+import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.Payload;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
+import pl.edu.mimuw.cloudatlas.agent.common.Constants;
 
 import java.net.DatagramPacket;
 import java.nio.ByteBuffer;
@@ -109,9 +113,30 @@ public class Transmission {
 				);
 			}
 
-			// TODO - deserialize and send the message
+			Payload payload = deserialize(buffer.array());
+			if (payload == null) {
+				return;
+			}
+
+			bus.sendMessage(new InNetworkMessage(
+					Constants.DEFAULT_GOSSIP_MODULE_NAME,
+					Constants.DEFAULT_COMM_MODULE_NAME,
+					transmissionId.address,
+					payload
+			));
 		} finally {
 			finished = true;
+		}
+	}
+
+	private Payload deserialize(byte[] buffer) {
+		try {
+			Input input = new Input(buffer);
+			return (Payload) kryo.readClassAndObject(input);
+		} catch (Exception e) {
+			finishWithError("Exception thrown when trying to deserialize the Payload.");
+			e.printStackTrace();
+			return null;
 		}
 	}
 

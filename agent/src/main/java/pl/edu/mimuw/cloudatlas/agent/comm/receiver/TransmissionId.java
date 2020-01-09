@@ -3,8 +3,8 @@ package pl.edu.mimuw.cloudatlas.agent.comm.receiver;
 import java.net.InetAddress;
 
 public class TransmissionId {
-	private InetAddress address;
-	private int transmissionToken;
+	public final InetAddress address;
+	public final int transmissionToken;
 
 	public TransmissionId(InetAddress address, int transmissionToken) {
 		this.address = address;
