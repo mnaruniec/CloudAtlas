@@ -8,12 +8,14 @@ import pl.edu.mimuw.cloudatlas.agent.common.Constants;
 import pl.edu.mimuw.cloudatlas.agent.common.Message;
 import pl.edu.mimuw.cloudatlas.agent.common.Module;
 import pl.edu.mimuw.cloudatlas.agent.gossip.machines.GossipStateMachine;
+import pl.edu.mimuw.cloudatlas.agent.gossip.machines.InboundGossipMachine;
 import pl.edu.mimuw.cloudatlas.agent.gossip.machines.OutboundGossipMachine;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipTargetRequest;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GossipMachineIdMessage;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.InitiateGossipMessage;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.OutboundGossipMachineMessage;
 
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,6 +23,7 @@ public class GossipModule extends Module {
 	private long nextMachineId = 0;
 
 	private OutboundGossipMachine outboundMachine;
+	private Map<InetAddress, InboundGossipMachine> inboundMachineMap = new HashMap<>();
 	private Map<Long, GossipStateMachine> machineIdMap = new HashMap<>();
 
 	public GossipModule(Bus bus) {
@@ -53,7 +56,7 @@ public class GossipModule extends Module {
 		if (machine == null) {
 			System.out.println(
 					"Gossip module received message for non-existing state machine id: "
-					+ machineId + ". Ignoring."
+							+ machineId + ". Ignoring."
 			);
 		} else {
 			passToMachine(machine, message);
@@ -82,7 +85,7 @@ public class GossipModule extends Module {
 				machineIdMap.remove(outboundMachine.machineId);
 			} else {
 				System.out.println(
-					"Gossip module received InitiateGossipMessage with outbound gossip already existing. Ignoring."
+						"Gossip module received InitiateGossipMessage with outbound gossip already existing. Ignoring."
 				);
 				return;
 			}
@@ -103,13 +106,25 @@ public class GossipModule extends Module {
 		}
 	}
 
-	private void passToInboundMachine(Message message) {
-		// TODO
+	private void passToInboundMachine(InNetworkMessage message) {
+		InetAddress srcAddress = message.srcAddress;
+		InboundGossipMachine machine = inboundMachineMap.get(srcAddress);
+		if (machine == null) {
+			machine = createInboundMachine(message);
+		}
+		passToMachine(machine, message);
 	}
 
 	private void passToMachine(GossipStateMachine machine, Message message) {
 		machine.handleMessage(message);
 		checkMachineFinished(machine);
+	}
+
+	private InboundGossipMachine createInboundMachine(InNetworkMessage message) {
+		InboundGossipMachine machine = new InboundGossipMachine(bus, getNextMachineId(), message.srcAddress);
+		machineIdMap.put(machine.getMachineId(), machine);
+		inboundMachineMap.put(machine.srcAddress, machine);
+		return machine;
 	}
 
 	private void checkMachineFinished(GossipStateMachine machine) {
@@ -119,6 +134,8 @@ public class GossipModule extends Module {
 
 		if (machine.getMachineId() == outboundMachine.getMachineId()) {
 			outboundMachine = null;
+		} else {
+			inboundMachineMap.remove(((InboundGossipMachine) machine).srcAddress);
 		}
 		machineIdMap.remove(machine.getMachineId());
 	}
