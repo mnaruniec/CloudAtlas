@@ -1,4 +1,5 @@
 package pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads;
 
-public class DataRequestPayload extends DataPayload implements NetworkRequestPayload {
+public final class DataRequestPayload extends DataPayload implements NetworkRequestPayload {
+	private DataRequestPayload() {}
 }
