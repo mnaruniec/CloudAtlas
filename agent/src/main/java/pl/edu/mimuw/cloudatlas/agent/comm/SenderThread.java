@@ -1,10 +1,9 @@
 package pl.edu.mimuw.cloudatlas.agent.comm;
 
 import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Output;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.OutNetworkMessage;
-import pl.edu.mimuw.cloudatlas.agent.common.Message;
 
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
@@ -47,6 +46,10 @@ public class SenderThread implements Runnable {
 
 	private void handleMessage(OutNetworkMessage message) {
 		byte[] buffer = serialize(message);
+		if (buffer == null) {
+			return;
+		}
+
 		int transmissionId = getNextTransmissionId();
 		int numDatagrams = (int) Math.ceil(
 				(buffer.length + CommModule.FIRST_HEADER_ADDITION)
@@ -84,6 +87,10 @@ public class SenderThread implements Runnable {
 			left -= bodyLen;
 			offset += bodyLen;
 		}
+
+		if (left != 0 || offset != buffer.length) {
+			System.out.println("Sender thread sent all datagrams, but the counters don't match. Ignoring.");
+		}
 	}
 
 	private void sendDatagram(DatagramPacket datagram) {
@@ -104,9 +111,16 @@ public class SenderThread implements Runnable {
 		return random.nextInt();
 	}
 
-	private byte[] serialize(Message message) {
-		// TODO
-		return new byte[1];
+	private byte[] serialize(OutNetworkMessage message) {
+		try {
+			Output output = new Output(CommModule.MAX_DATAGRAM_SIZE, -1);
+			kryo.writeClassAndObject(output, message.payload);
+			return output.toBytes();
+		} catch (Exception e) {
+			System.out.println("Exception thrown when trying to serialize the payload. Ignoring.");
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 
