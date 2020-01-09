@@ -31,7 +31,9 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-public class ValueQuery extends ValueSimple<Program> {
+public final class ValueQuery extends ValueSimple<Program> {
+	private ValueQuery() {}
+
 	public ValueQuery(Program value) {
 		super(value);
 	}

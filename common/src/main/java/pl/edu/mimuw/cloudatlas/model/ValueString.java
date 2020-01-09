@@ -32,12 +32,14 @@ import pl.edu.mimuw.cloudatlas.model.ValueString;
 /**
  * A class that wraps a Java <code>String</code> object.
  */
-public class ValueString extends ValueSimple<String> {
+public final class ValueString extends ValueSimple<String> {
 	/**
 	 * A result of conversion values representing null to <code>ValueString</code>.
 	 */
 	protected static final ValueString NULL_STRING = new ValueString("NULL");
-	
+
+	private ValueString() {}
+
 	/**
 	 * Constructs a new <code>ValueString</code> object wrapping the specified <code>value</code>.
 	 * 

@@ -39,6 +39,10 @@ public abstract class Type implements Serializable {
 	}
 	
 	private final PrimaryType primaryType;
+
+	protected Type() {
+		this(PrimaryType.NULL);
+	}
 	
 	/**
 	 * Creates a <code>Type</code> object with a given primary type.

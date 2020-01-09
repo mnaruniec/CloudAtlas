@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Represent a fully qualified name of a zone, also known as a global name or a path name. This class is immutable.
  */
-public class PathName implements Serializable {
+public final class PathName implements Serializable {
 	/**
 	 * The object representing a name of the root zone (/).
 	 */
@@ -42,6 +42,10 @@ public class PathName implements Serializable {
 	
 	private final List<String> components;
 	private final String name;
+
+	private PathName() {
+		this("");
+	}
 	
 	/**
 	 * Creates a <code>PathName</code> object representing the specified path. For the root zone, there are three

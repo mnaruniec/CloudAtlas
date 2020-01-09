@@ -32,8 +32,12 @@ package pl.edu.mimuw.cloudatlas.model;
  * <p>
  * This class is immutable.
  */
-public class Attribute {
+public final class Attribute {
 	private final String name;
+
+	private Attribute() {
+		name = "";
+	}
 	
 	/**
 	 * Creates a new <code>Attribute</code> object with the specified <code>name</code>.

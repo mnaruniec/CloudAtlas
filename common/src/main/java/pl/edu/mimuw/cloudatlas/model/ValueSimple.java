@@ -33,6 +33,10 @@ package pl.edu.mimuw.cloudatlas.model;
  */
 abstract class ValueSimple<T> extends Value {
 	private T value;
+
+	protected ValueSimple() {
+		value = null;
+	}
 	
 	/**
 	 * Constructs a new <code>Value</code> wrapping the specified <code>value</code>.

@@ -32,8 +32,10 @@ import java.util.regex.Pattern;
  * A class representing duration in milliseconds. The duration can be negative. This is a simple wrapper of a Java
  * <code>Long</code> object.
  */
-public class ValueDuration extends ValueSimple<Long> {
+public final class ValueDuration extends ValueSimple<Long> {
 	public static final String DURATION_REGEXP = "^([+-])([1-9]\\d*|0) (\\d{2}):(\\d{2}):(\\d{2}).(\\d{3})$";
+
+	private ValueDuration() {}
 
 	/**
 	 * Constructs a new <code>ValueDuration</code> object wrapping the specified <code>value</code>.

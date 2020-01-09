@@ -44,7 +44,7 @@ import pl.edu.mimuw.cloudatlas.model.ValueSet;
  * 
  * @see java.util.Set
  */
-public class ValueSet extends ValueSimple<Set<Value>> implements Set<Value> {
+public final class ValueSet extends ValueSimple<Set<Value>> implements Set<Value> {
 	private TypeCollection type;
 	
 	/**

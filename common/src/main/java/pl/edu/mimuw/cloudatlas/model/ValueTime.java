@@ -31,13 +31,15 @@ import java.text.SimpleDateFormat;
 /**
  * A class representing the POSIX time in milliseconds. This is a simple wrapper of a Java <code>Long</code> object.
  */
-public class ValueTime extends ValueSimple<Long> {
+public final class ValueTime extends ValueSimple<Long> {
 	/**
 	 * A format of string representing <code>ValueTime</code> when constructing from or converting to a
 	 * <code>String</code> object.
 	 */
 	public static final DateFormat TIME_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
-	
+
+	private ValueTime() {}
+
 	/**
 	 * Constructs a new <code>ValueTime</code> object wrapping the specified value.
 	 * 

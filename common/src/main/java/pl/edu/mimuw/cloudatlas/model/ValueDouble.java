@@ -30,7 +30,9 @@ import pl.edu.mimuw.cloudatlas.model.ValueDouble;
 /**
  * A class that wraps a Java <code>Double</code> object.
  */
-public class ValueDouble extends ValueSimple<Double> {
+public final class ValueDouble extends ValueSimple<Double> {
+	private ValueDouble() {}
+
 	/**
 	 * Constructs a new <code>ValueDouble</code> object wrapping the specified <code>value</code>.
 	 * 

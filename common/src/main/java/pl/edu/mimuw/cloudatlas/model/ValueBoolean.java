@@ -30,7 +30,9 @@ import pl.edu.mimuw.cloudatlas.model.ValueBoolean;
 /**
  * A class that wraps a Java <code>Boolean</code> object.
  */
-public class ValueBoolean extends ValueSimple<Boolean> {
+public final class ValueBoolean extends ValueSimple<Boolean> {
+	private ValueBoolean() {}
+
 	/**
 	 * Constructs a new <code>ValueBoolean</code> object wrapping the specified <code>value</code>.
 	 * 

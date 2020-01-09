@@ -34,7 +34,7 @@ import java.util.Map.Entry;
  * A zone management information. This object is a single node in a zone hierarchy. It stores zone attributes as well as
  * references to its father and sons in the tree.
  */
-public class ZMI implements Cloneable {
+public final class ZMI implements Cloneable {
 	public static final Attribute NAME_ATTR = new Attribute("name");
 	public static final Attribute TIMESTAMP_ATTR = new Attribute("timestamp");
 

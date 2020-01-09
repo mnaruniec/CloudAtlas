@@ -45,7 +45,7 @@ import pl.edu.mimuw.cloudatlas.model.ValueList;
  * 
  * @see java.util.List
  */
-public class ValueList extends ValueSimple<List<Value>> implements List<Value> {
+public final class ValueList extends ValueSimple<List<Value>> implements List<Value> {
 	private TypeCollection type;
 	
 	/**

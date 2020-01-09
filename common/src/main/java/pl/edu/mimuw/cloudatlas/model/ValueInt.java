@@ -31,7 +31,9 @@ import pl.edu.mimuw.cloudatlas.model.ValueInt;
 /**
  * A class that wraps a Java <code>Long</code> object.
  */
-public class ValueInt extends ValueSimple<Long> {
+public final class ValueInt extends ValueSimple<Long> {
+	private ValueInt() {}
+
 	/**
 	 * Constructs a new <code>ValueInt</code> object wrapping the specified <code>value</code>.
 	 * 

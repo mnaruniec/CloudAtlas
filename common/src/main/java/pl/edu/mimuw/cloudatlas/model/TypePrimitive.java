@@ -29,7 +29,7 @@ package pl.edu.mimuw.cloudatlas.model;
  * 
  * @see TypeCollection
  */
-public class TypePrimitive extends Type {
+public final class TypePrimitive extends Type {
 	/**
 	 * Boolean type.
 	 */
@@ -74,6 +74,10 @@ public class TypePrimitive extends Type {
 	public static final TypePrimitive TIME = new TypePrimitive(PrimaryType.TIME);
 
 	public static final TypePrimitive QUERY = new TypePrimitive(PrimaryType.QUERY);
+
+	private TypePrimitive() {
+		super();
+	}
 
 	private TypePrimitive(PrimaryType primaryType) {
 		super(primaryType);

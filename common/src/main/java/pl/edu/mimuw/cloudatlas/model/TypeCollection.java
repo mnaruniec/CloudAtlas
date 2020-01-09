@@ -34,11 +34,15 @@ import pl.edu.mimuw.cloudatlas.model.ValueNull;
 /**
  * Represents a collection type with specified element type.
  * 
- * @see TypePrimitve
+ * @see TypePrimitive
  */
-public class TypeCollection extends Type {
+public final class TypeCollection extends Type {
 	private final Type elementType;
-	
+
+	private TypeCollection() {
+		this(PrimaryType.LIST, TypePrimitive.NULL);
+	}
+
 	/**
 	 * Creates a new collection type.
 	 * 

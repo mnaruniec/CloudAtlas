@@ -33,7 +33,7 @@ import pl.edu.mimuw.cloudatlas.model.ValueNull;
  * @see TypePrimitve#NULL
  * @see Type#isCompatible(Value)
  */
-public class ValueNull extends Value {
+public final class ValueNull extends Value {
 	private static ValueNull instance = null;
 	
 	private ValueNull() {}
