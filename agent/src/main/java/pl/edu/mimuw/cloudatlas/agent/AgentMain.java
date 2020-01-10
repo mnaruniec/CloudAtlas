@@ -5,8 +5,10 @@ import pl.edu.mimuw.cloudatlas.agent.common.Bus;
 import pl.edu.mimuw.cloudatlas.agent.common.Module;
 import pl.edu.mimuw.cloudatlas.agent.common.ModuleExecutor;
 import pl.edu.mimuw.cloudatlas.agent.data.DataModule;
+import pl.edu.mimuw.cloudatlas.agent.gossip.GossipModule;
 import pl.edu.mimuw.cloudatlas.agent.rmi.RmiModule;
 import pl.edu.mimuw.cloudatlas.agent.timer.TimerModule;
+import pl.edu.mimuw.cloudatlas.model.PathName;
 
 import java.net.UnknownHostException;
 import java.util.concurrent.ExecutorService;
@@ -29,6 +31,7 @@ public class AgentMain {
 					new RmiModule(bus),
 					new DataModule(bus),
 					new CommModule(bus),
+					new GossipModule(bus, new PathName("/uw/violet07")), // TODO - config
 			};
 
 			moduleExecutors = new ModuleExecutor[modules.length];

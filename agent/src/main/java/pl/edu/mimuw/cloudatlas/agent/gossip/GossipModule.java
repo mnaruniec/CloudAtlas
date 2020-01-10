@@ -14,6 +14,7 @@ import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipTargetRequest;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GossipMachineIdMessage;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.InitiateGossipMessage;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.OutboundGossipMachineMessage;
+import pl.edu.mimuw.cloudatlas.model.PathName;
 
 import java.net.InetAddress;
 import java.util.HashMap;
@@ -26,8 +27,12 @@ public class GossipModule extends Module {
 	private Map<InetAddress, InboundGossipMachine> inboundMachineMap = new HashMap<>();
 	private Map<Long, GossipStateMachine> machineIdMap = new HashMap<>();
 
-	public GossipModule(Bus bus) {
+	private PathName localPathName;
+
+	public GossipModule(Bus bus, PathName localPathName) {
 		super(bus);
+		// TODO - pass as config
+		this.localPathName = localPathName;
 	}
 
 	@Override
@@ -90,7 +95,7 @@ public class GossipModule extends Module {
 				return;
 			}
 		}
-		outboundMachine = new OutboundGossipMachine(bus, getNextMachineId());
+		outboundMachine = new OutboundGossipMachine(bus, localPathName, getNextMachineId());
 		machineIdMap.put(outboundMachine.machineId, outboundMachine);
 
 		bus.sendMessage(new GetGossipTargetRequest(
