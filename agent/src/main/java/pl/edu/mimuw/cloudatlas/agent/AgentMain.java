@@ -6,6 +6,7 @@ import pl.edu.mimuw.cloudatlas.agent.common.Module;
 import pl.edu.mimuw.cloudatlas.agent.common.ModuleExecutor;
 import pl.edu.mimuw.cloudatlas.agent.data.DataModule;
 import pl.edu.mimuw.cloudatlas.agent.gossip.GossipModule;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.InitiateGossipMessage;
 import pl.edu.mimuw.cloudatlas.agent.rmi.RmiModule;
 import pl.edu.mimuw.cloudatlas.agent.timer.TimerModule;
 import pl.edu.mimuw.cloudatlas.model.PathName;
@@ -28,7 +29,7 @@ public class AgentMain {
 			bus = new Bus();
 			modules = new Module[]{
 					new TimerModule(bus),
-					new RmiModule(bus),
+//					new RmiModule(bus),
 					new DataModule(bus),
 					new CommModule(bus),
 					new GossipModule(bus, new PathName("/uw/violet07")), // TODO - config
@@ -57,6 +58,7 @@ public class AgentMain {
 		}
 		System.out.println("Executors started.");
 
+		bus.sendMessage(new InitiateGossipMessage("gossip", "main"));
 //		bus.sendMessage(new OutNetworkMessage("comm", "main", InetAddress.getByName("127.0.0.1"),
 //				new Payload() {}
 //				));

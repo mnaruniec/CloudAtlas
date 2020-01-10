@@ -8,6 +8,7 @@ import pl.edu.mimuw.cloudatlas.agent.gossip.messages.FreshnessInfo;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetFreshnessInfoRequest;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetFreshnessInfoResponse;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipTargetRequest;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipTargetResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetFallbackContactsRequest;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetFallbackContactsResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetStoredZonesRequest;
@@ -19,8 +20,11 @@ import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiSetFallbackContactsMessage;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesRequest;
 import pl.edu.mimuw.cloudatlas.model.PathName;
+import pl.edu.mimuw.cloudatlas.model.ValueContact;
 import pl.edu.mimuw.cloudatlas.model.ZMI;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
@@ -56,7 +60,16 @@ public class DataModule extends Module {
 	}
 
 	private void handleGetGossipTargetRequest(GetGossipTargetRequest request) {
-
+		// TODO
+		try {
+			bus.sendMessage(new GetGossipTargetResponse(
+					request,
+					new ValueContact(new PathName("/uw/violet07"), InetAddress.getByName("127.0.0.1"))
+			));
+		} catch (UnknownHostException e) {
+			System.out.println("Weird.");
+			e.printStackTrace();
+		}
 	}
 
 	private void handleGetFreshnessInfoRequest(GetFreshnessInfoRequest request) {

@@ -86,6 +86,7 @@ public class OutboundGossipMachine implements GossipStateMachine {
 	}
 
 	private void handleGetGossipTargetResponse(GetGossipTargetResponse response) {
+		System.out.println("out1");
 		if (state != State.ExpectGossipTarget) {
 			// TODO - consider finishing in these checks
 			System.out.println("Received gossip target in state: " + state + ". Ignoring.");
@@ -108,6 +109,7 @@ public class OutboundGossipMachine implements GossipStateMachine {
 	}
 
 	private void handleGetFreshnessInfoResponse(GetFreshnessInfoResponse response) {
+		System.out.println("out2");
 		if (state != State.ExpectLocalFreshnessInfo) {
 			System.out.println("Received local freshness info in state: " + state + ". Ignoring.");
 			return;
@@ -128,6 +130,7 @@ public class OutboundGossipMachine implements GossipStateMachine {
 	}
 
 	private void handleNetworkFreshnessInfoResponse(InNetworkMessage message) {
+		System.out.println("out3");
 		if (state != State.ExpectRemoteFreshnessInfo) {
 			System.out.println("Received remote freshness info in state: " + state + ". Ignoring.");
 			return;
@@ -138,6 +141,9 @@ public class OutboundGossipMachine implements GossipStateMachine {
 			System.out.println("Received null as remote freshness info. Finishing gossip.");
 			finish();
 		} else {
+			System.out.println("OutLocal freshness: " + localFreshnessInfo.getZmiTimestamps());
+			System.out.println("OutRemote freshness: " + remoteFreshnessInfo.getZmiTimestamps());
+
 			state = State.ExpectLocalData;
 			bus.sendMessage(new GetGossipDataRequest(
 					Constants.DEFAULT_DATA_MODULE_NAME,
@@ -149,6 +155,7 @@ public class OutboundGossipMachine implements GossipStateMachine {
 	}
 
 	private void handleGetGossipDataResponse(GetGossipDataResponse response) {
+		System.out.println("out4");
 		if (state != State.ExpectLocalData) {
 			System.out.println("Received local gossip data in state: " + state + ". Ignoring.");
 			return;

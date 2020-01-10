@@ -53,7 +53,7 @@ public class SenderThread implements Runnable {
 		int transmissionId = getNextTransmissionId();
 		int numDatagrams = (int) Math.ceil(
 				(buffer.length + CommModule.FIRST_HEADER_ADDITION)
-				/ (double)CommModule.MAX_DATAGRAM_SIZE
+				/ (double)(CommModule.MAX_DATAGRAM_SIZE - CommModule.MIN_HEADER_SIZE)
 		);
 
 		int offset = 0;

@@ -16,7 +16,7 @@ public class TransmissionId {
 		if (!(o instanceof TransmissionId)) {
 			return false;
 		}
-		return address == ((TransmissionId) o).address
+		return address.equals(((TransmissionId) o).address)
 				&& transmissionToken == ((TransmissionId) o).transmissionToken;
 	}
 

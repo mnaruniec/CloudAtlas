@@ -86,6 +86,7 @@ public class InboundGossipMachine implements GossipStateMachine {
 	}
 
 	private void handleNetworkFreshnessInfoRequest(InNetworkMessage message) {
+		System.out.println("in1");
 		if (state != State.ExpectRemoteFreshnessInfo) {
 			System.out.println("Received remote freshness info in state: " + state + ". Ignoring.");
 			return;
@@ -116,6 +117,7 @@ public class InboundGossipMachine implements GossipStateMachine {
 	}
 
 	private void handleGetFreshnessInfoResponse(GetFreshnessInfoResponse response) {
+		System.out.println("in2");
 		if (state != State.ExpectLocalFreshnessInfo) {
 			System.out.println("Received local freshness info in state: " + state + ". Ignoring.");
 			return;
@@ -128,6 +130,8 @@ public class InboundGossipMachine implements GossipStateMachine {
 		} else {
 			// TODO - consider resending packets
 
+			System.out.println("InRemote freshness: " + remoteFreshnessInfo.getZmiTimestamps());
+			System.out.println("InLocal freshness: " + localFreshnessInfo.getZmiTimestamps());
 			state = State.ExpectRemoteData;
 			bus.sendMessage(createNetworkMessage(
 					new FreshnessInfoResponsePayload(localFreshnessInfo)
@@ -136,6 +140,7 @@ public class InboundGossipMachine implements GossipStateMachine {
 	}
 
 	private void handleNetworkDataRequest(InNetworkMessage message) {
+		System.out.println("in3");
 		// TODO
 	}
 

@@ -35,7 +35,7 @@ public class Transmission {
 			ByteBuffer byteBuffer = ByteBuffer.wrap(
 					datagram.getData(),
 					datagram.getOffset() + 4,
-					datagram.getLength()
+					datagram.getLength() - 4
 			);
 
 			int sequenceNum = byteBuffer.getInt();

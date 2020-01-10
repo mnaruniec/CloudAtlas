@@ -31,6 +31,7 @@ import pl.edu.mimuw.cloudatlas.model.ValueTime;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 
 public class KryoPool extends Pool<Kryo> {
@@ -50,6 +51,7 @@ public class KryoPool extends Pool<Kryo> {
 
 		kryo.register(ArrayList.class);
 		kryo.register(HashSet.class);
+		kryo.register(HashMap.class);
 
 		kryo.register(FreshnessInfoRequestPayload.class);
 		kryo.register(FreshnessInfoResponsePayload.class);
