@@ -86,6 +86,7 @@ public class InboundGossipMachine implements GossipStateMachine {
 	}
 
 	private void handleNetworkFreshnessInfoRequest(InNetworkMessage message) {
+		// TODO - remove debug prints
 		System.out.println("in1");
 		if (state != State.ExpectRemoteFreshnessInfo) {
 			System.out.println("Received remote freshness info in state: " + state + ". Ignoring.");

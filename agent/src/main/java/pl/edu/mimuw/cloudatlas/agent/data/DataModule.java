@@ -7,8 +7,11 @@ import pl.edu.mimuw.cloudatlas.agent.common.Module;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.FreshnessInfo;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetFreshnessInfoRequest;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetFreshnessInfoResponse;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipDataRequest;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipDataResponse;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipTargetRequest;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipTargetResponse;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GossipData;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetFallbackContactsRequest;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetFallbackContactsResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetStoredZonesRequest;
@@ -19,6 +22,7 @@ import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiMessage;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiSetFallbackContactsMessage;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesRequest;
+import pl.edu.mimuw.cloudatlas.model.AttributesMap;
 import pl.edu.mimuw.cloudatlas.model.PathName;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
 import pl.edu.mimuw.cloudatlas.model.ZMI;
@@ -54,6 +58,8 @@ public class DataModule extends Module {
 			handleGetGossipTargetRequest((GetGossipTargetRequest) message);
 		} else if (message instanceof GetFreshnessInfoRequest) {
 			handleGetFreshnessInfoRequest((GetFreshnessInfoRequest) message);
+		} else if (message instanceof GetGossipDataRequest) {
+			handleGetGossipDataRequest((GetGossipDataRequest) message);
 		} else {
 			System.out.println("Received unexpected type of message in data module. Ignoring.");
 		}
@@ -74,13 +80,15 @@ public class DataModule extends Module {
 
 	private void handleGetFreshnessInfoRequest(GetFreshnessInfoRequest request) {
 		FreshnessInfo freshnessInfo = null;
-		Map<String, Long> zmiTimestamps = new HashMap<>();
-		Deque<String> path = new LinkedList<>();
 
 		try {
-			if (model.root != null) {
-				getFreshnessInfo(model.root, zmiTimestamps, path, new ArrayList<>(request.pathName.getComponents()));
+			Map<String, ZMI> zmiMap = getRelevantZMIs(request.pathName);
+
+			Map<String, Long> zmiTimestamps = new HashMap<>();
+			for (Map.Entry<String, ZMI> entry: zmiMap.entrySet()) {
+				zmiTimestamps.put(entry.getKey(), entry.getValue().getTimestamp());
 			}
+
 			freshnessInfo = new FreshnessInfo(zmiTimestamps);
 		} catch (Exception e) {
 			System.out.println("Exception occured in data module when collecting freshness info. Returning null.");
@@ -93,7 +101,46 @@ public class DataModule extends Module {
 		));
 	}
 
-	private void getFreshnessInfo(ZMI zmi, Map<String, Long> zmiTimestamps, Deque<String> path, List<String> targetPath) {
+	private void handleGetGossipDataRequest(GetGossipDataRequest request) {
+		GossipData gossipData = null;
+
+		try {
+			Map<String, ZMI> zmiMap = getRelevantZMIs(request.pathName);
+			Map<String, Long> zmiTimestamps = request.remoteFreshnessInfo.getZmiTimestamps();
+
+			Map<String, AttributesMap> attributes = new HashMap<>();
+			for (Map.Entry<String, ZMI> entry: zmiMap.entrySet()) {
+				String pathName = entry.getKey();
+				ZMI zmi = entry.getValue();
+				long timestamp = zmiTimestamps.get(pathName);
+
+				// TODO - remove true
+				if (timestamp < zmi.getTimestamp() || true) {
+					attributes.put(pathName, zmi.getAttributes().clone());
+				}
+			}
+
+			gossipData = new GossipData(attributes);
+		} catch (Exception e) {
+			System.out.println("Exception occured in data module when collecting gossip data. Returning null.");
+			e.printStackTrace();
+		}
+
+		bus.sendMessage(new GetGossipDataResponse(
+				request,
+				gossipData
+		));
+	}
+
+	private Map<String, ZMI> getRelevantZMIs(PathName target) {
+		Map<String, ZMI> zmiMap = new HashMap<>();
+		if (model.root != null) {
+			getRelevantZMIs(model.root, zmiMap, new LinkedList<>(), new ArrayList<>(target.getComponents()));
+		}
+		return zmiMap;
+	}
+
+	private void getRelevantZMIs(ZMI zmi, Map<String, ZMI> zmiMap, Deque<String> path, List<String> targetPath) {
 		int depth = path.size();
 		if (depth >= targetPath.size()) {
 			return;
@@ -101,12 +148,11 @@ public class DataModule extends Module {
 		for (ZMI son: zmi.getSons()) {
 			String sonName = son.getName();
 			path.addLast(sonName);
-			if (targetPath.get(depth).equals(sonName)) {
-				if (path.size() < targetPath.size()) {
-					getFreshnessInfo(son, zmiTimestamps, path, targetPath);
-				}
+			// TODO - consider going back to omitting target zone
+			if (targetPath.get(depth).equals(sonName) && path.size() < targetPath.size()) {
+				getRelevantZMIs(son, zmiMap, path, targetPath);
 			} else {
-				zmiTimestamps.put(new PathName(path).getName(), son.getTimestamp());
+				zmiMap.put(new PathName(path).getName(), son);
 			}
 			path.removeLast();
 		}

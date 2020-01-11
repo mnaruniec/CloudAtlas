@@ -12,9 +12,11 @@ import pl.edu.mimuw.cloudatlas.agent.comm.serializers.PathNameSerializer;
 import pl.edu.mimuw.cloudatlas.agent.comm.serializers.ValueListSerializer;
 import pl.edu.mimuw.cloudatlas.agent.comm.serializers.ValueSetSerializer;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.FreshnessInfo;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GossipData;
 import pl.edu.mimuw.cloudatlas.model.Attribute;
 import pl.edu.mimuw.cloudatlas.model.AttributesMap;
 import pl.edu.mimuw.cloudatlas.model.PathName;
+import pl.edu.mimuw.cloudatlas.model.Type;
 import pl.edu.mimuw.cloudatlas.model.TypeCollection;
 import pl.edu.mimuw.cloudatlas.model.TypePrimitive;
 import pl.edu.mimuw.cloudatlas.model.ValueBoolean;
@@ -59,9 +61,11 @@ public class KryoPool extends Pool<Kryo> {
 		kryo.register(DataResponsePayload.class);
 
 		kryo.register(FreshnessInfo.class);
+		kryo.register(GossipData.class);
 
 		kryo.register(Attribute.class);
 		kryo.register(AttributesMap.class);
+		kryo.register(Type.PrimaryType.class);
 		kryo.register(TypeCollection.class);
 		kryo.register(TypePrimitive.class);
 		kryo.register(ValueBoolean.class);

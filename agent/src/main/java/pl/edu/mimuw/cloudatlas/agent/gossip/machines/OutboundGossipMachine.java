@@ -2,6 +2,7 @@ package pl.edu.mimuw.cloudatlas.agent.gossip.machines;
 
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.InNetworkMessage;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.OutNetworkMessage;
+import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.DataRequestPayload;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.DataResponsePayload;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.FreshnessInfoPayload;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.FreshnessInfoRequestPayload;
@@ -17,6 +18,7 @@ import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetFreshnessInfoResponse;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipDataRequest;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipDataResponse;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipTargetResponse;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GossipData;
 import pl.edu.mimuw.cloudatlas.model.PathName;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
 
@@ -34,6 +36,8 @@ public class OutboundGossipMachine implements GossipStateMachine {
 	private ValueContact target;
 	private FreshnessInfo localFreshnessInfo;
 	private FreshnessInfo remoteFreshnessInfo;
+	private GossipData localGossipData;
+	private GossipData remoteGossipData;
 
 	public final long machineId;
 	public final PathName localPathName;
@@ -62,6 +66,8 @@ public class OutboundGossipMachine implements GossipStateMachine {
 				handleGetGossipTargetResponse((GetGossipTargetResponse) message);
 			} else if (message instanceof GetFreshnessInfoResponse) {
 				handleGetFreshnessInfoResponse((GetFreshnessInfoResponse) message);
+			} else if (message instanceof GetGossipDataResponse) {
+				handleGetGossipDataResponse((GetGossipDataResponse) message);
 			} else if (message instanceof InNetworkMessage) {
 				handleInNetworkMessage((InNetworkMessage) message);
 			} else {
@@ -149,6 +155,7 @@ public class OutboundGossipMachine implements GossipStateMachine {
 					Constants.DEFAULT_DATA_MODULE_NAME,
 					Constants.DEFAULT_GOSSIP_MODULE_NAME,
 					getMachineId(),
+					target.getName(),
 					remoteFreshnessInfo
 			));
 		}
@@ -159,6 +166,19 @@ public class OutboundGossipMachine implements GossipStateMachine {
 		if (state != State.ExpectLocalData) {
 			System.out.println("Received local gossip data in state: " + state + ". Ignoring.");
 			return;
+		}
+
+		localGossipData = response.gossipData;
+		if (localGossipData == null) {
+			System.out.println("Received null as local gossip data. Finishing gossip.");
+			finish();
+		} else {
+			System.out.println("OutLocal data: " + localGossipData.getZmiMap());
+
+			state = State.ExpectRemoteData;
+			bus.sendMessage(createNetworkMessage(
+					new DataRequestPayload(localGossipData)
+			));
 		}
 
 		// TODO
