@@ -174,6 +174,8 @@ public class DataModule extends Module {
 	}
 
 	private void handleUpdateWithGossipDataMessage(UpdateWithGossipDataMessage message) {
+		// TODO - remove debug prints
+		System.out.println("Updating data.");
 		Map<String, AttributesMap> zmiMap = message.gossipData.getZmiMap();
 		Map<PathName, AttributesMap> newZmiMap = new HashMap<>();
 		Map<PathName, AttributesMap> existingZmiMap = new HashMap<>();
@@ -203,6 +205,8 @@ public class DataModule extends Module {
 			createZMIPath(pathName);
 			substituteZMI(pathName, entry.getValue());
 		}
+
+		System.out.println("Updated data.");
 	}
 
 	private void verifyAttributesMap(PathName pathName, AttributesMap attributesMap) {

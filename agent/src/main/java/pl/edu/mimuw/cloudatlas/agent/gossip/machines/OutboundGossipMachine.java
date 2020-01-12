@@ -2,12 +2,12 @@ package pl.edu.mimuw.cloudatlas.agent.gossip.machines;
 
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.InNetworkMessage;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.OutNetworkMessage;
+import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.DataPayload;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.DataRequestPayload;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.DataResponsePayload;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.FreshnessInfoPayload;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.FreshnessInfoRequestPayload;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.FreshnessInfoResponsePayload;
-import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.NetworkRequestPayload;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.Payload;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
 import pl.edu.mimuw.cloudatlas.agent.common.Constants;
@@ -19,6 +19,7 @@ import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipDataRequest;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipDataResponse;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipTargetResponse;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GossipData;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.UpdateWithGossipDataMessage;
 import pl.edu.mimuw.cloudatlas.model.PathName;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
 
@@ -180,8 +181,6 @@ public class OutboundGossipMachine implements GossipStateMachine {
 					new DataRequestPayload(localGossipData)
 			));
 		}
-
-		// TODO
 	}
 
 	private void handleNetworkDataResponse(InNetworkMessage message) {
@@ -190,7 +189,21 @@ public class OutboundGossipMachine implements GossipStateMachine {
 			return;
 		}
 
-		// TODO
+		remoteGossipData = ((DataPayload) message.payload).getGossipData();
+		if (remoteGossipData == null) {
+			System.out.println("Received null as remote gossip data. Finishing gossip.");
+			finish();
+		} else {
+			System.out.println("OutLocal data: " + localGossipData.getZmiMap());
+			System.out.println("OutRemote data: " + remoteGossipData.getZmiMap());
+
+			finish();
+			bus.sendMessage(new UpdateWithGossipDataMessage(
+					Constants.DEFAULT_DATA_MODULE_NAME,
+					Constants.DEFAULT_GOSSIP_MODULE_NAME,
+					remoteGossipData
+			));
+		}
 	}
 
 	private OutNetworkMessage createNetworkMessage(Payload payload) {

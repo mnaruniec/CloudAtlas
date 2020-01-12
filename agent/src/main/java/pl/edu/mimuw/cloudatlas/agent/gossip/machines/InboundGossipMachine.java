@@ -2,6 +2,7 @@ package pl.edu.mimuw.cloudatlas.agent.gossip.machines;
 
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.InNetworkMessage;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.OutNetworkMessage;
+import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.DataPayload;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.DataRequestPayload;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.DataResponsePayload;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.FreshnessInfoPayload;
@@ -14,7 +15,10 @@ import pl.edu.mimuw.cloudatlas.agent.common.Message;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.FreshnessInfo;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetFreshnessInfoRequest;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetFreshnessInfoResponse;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipDataRequest;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipDataResponse;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GossipData;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.UpdateWithGossipDataMessage;
 import pl.edu.mimuw.cloudatlas.model.PathName;
 
 import java.net.InetAddress;
@@ -32,6 +36,8 @@ public class InboundGossipMachine implements GossipStateMachine {
 
 	private FreshnessInfo localFreshnessInfo;
 	private FreshnessInfo remoteFreshnessInfo;
+	private GossipData localGossipData;
+	private GossipData remoteGossipData;
 
 	public final long machineId;
 	private Bus bus;
@@ -142,11 +148,52 @@ public class InboundGossipMachine implements GossipStateMachine {
 
 	private void handleNetworkDataRequest(InNetworkMessage message) {
 		System.out.println("in3");
-		// TODO
+
+		if (state != State.ExpectRemoteData) {
+			System.out.println("Received remote data in state: " + state + ". Ignoring.");
+			return;
+		}
+
+		remoteGossipData = ((DataPayload) message.payload).getGossipData();
+		if (remoteGossipData == null) {
+			System.out.println("Received null as remote gossip data. Finishing gossip.");
+			finish();
+		} else {
+			state = State.ExpectLocalData;
+			bus.sendMessage(new GetGossipDataRequest(
+					Constants.DEFAULT_DATA_MODULE_NAME,
+					Constants.DEFAULT_GOSSIP_MODULE_NAME,
+					getMachineId(),
+					srcPathName,
+					remoteFreshnessInfo
+			));
+		}
 	}
 
 	private void handleGetGossipDataResponse(GetGossipDataResponse response) {
-		// TODO
+		System.out.println("in4");
+
+		if (state != State.ExpectLocalData) {
+			System.out.println("Received local data in state: " + state + ". Ignoring.");
+			return;
+		}
+
+		bus.sendMessage(new UpdateWithGossipDataMessage(
+				Constants.DEFAULT_DATA_MODULE_NAME,
+				Constants.DEFAULT_GOSSIP_MODULE_NAME,
+				remoteGossipData
+		));
+
+		localGossipData = response.gossipData;
+		if (localGossipData == null) {
+			System.out.println("Received null as local gossip data. Finishing gossip.");
+			finish();
+		} else {
+			finish();
+			bus.sendMessage(createNetworkMessage(
+					new DataResponsePayload(localGossipData)
+			));
+		}
 	}
 
 
