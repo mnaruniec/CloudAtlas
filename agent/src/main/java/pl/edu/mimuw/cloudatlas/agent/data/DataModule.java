@@ -24,6 +24,10 @@ import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiSetFallbackContactsMessage;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesRequest;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesResponse;
+import pl.edu.mimuw.cloudatlas.agent.task.messages.RefreshAttributeValuesMessage;
+import pl.edu.mimuw.cloudatlas.interpreter.Interpreter;
+import pl.edu.mimuw.cloudatlas.interpreter.QueryResult;
+import pl.edu.mimuw.cloudatlas.interpreter.query.Absyn.Program;
 import pl.edu.mimuw.cloudatlas.model.Attribute;
 import pl.edu.mimuw.cloudatlas.model.AttributesMap;
 import pl.edu.mimuw.cloudatlas.model.PathName;
@@ -31,6 +35,7 @@ import pl.edu.mimuw.cloudatlas.model.TypePrimitive;
 import pl.edu.mimuw.cloudatlas.model.Value;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
 import pl.edu.mimuw.cloudatlas.model.ValueInt;
+import pl.edu.mimuw.cloudatlas.model.ValueQuery;
 import pl.edu.mimuw.cloudatlas.model.ValueSet;
 import pl.edu.mimuw.cloudatlas.model.ValueString;
 import pl.edu.mimuw.cloudatlas.model.ValueTime;
@@ -86,6 +91,8 @@ public class DataModule extends Module {
 			handleGetGossipDataRequest((GetGossipDataRequest) message);
 		} else if (message instanceof UpdateWithGossipDataMessage) {
 			handleUpdateWithGossipDataMessage((UpdateWithGossipDataMessage) message);
+		} else if (message instanceof RefreshAttributeValuesMessage) {
+			handleRefreshAttributeValuesMessage((RefreshAttributeValuesMessage) message);
 		} else {
 			System.out.println("Received unexpected type of message in data module. Ignoring.");
 		}
@@ -269,6 +276,7 @@ public class DataModule extends Module {
 	}
 
 	private ZMI createInitializedZMI(PathName pathName) {
+		// TODO - verify if no queries
 		ZMI zmi = new ZMI();
 		AttributesMap attrMap = zmi.getAttributes();
 		attrMap.add(ZMI.NAME_ATTR, new ValueString(pathName.getSingletonName()));
@@ -276,7 +284,7 @@ public class DataModule extends Module {
 		// TODO - consider better initialization
 		attrMap.add(ZMI.CARDINALITY_ATTR, new ValueInt(1L));
 		attrMap.add(ZMI.OWNER_ATTR, new ValueString(pathName.toString()));
-		attrMap.add(ZMI.TIMESTAMP_ATTR, new ValueTime());
+		refreshTimestamp(zmi);
 
 		// TODO - consider adding as contact to all prefixes
 		Set<Value> valueSet = new HashSet<>();
@@ -418,7 +426,7 @@ public class DataModule extends Module {
 
 		ZMI zmi = createZMIPath(pathName);
 		zmi.getAttributes().addOrChange(attributesMap);
-		zmi.getAttributes().addOrChange(ZMI.TIMESTAMP_ATTR, new ValueTime());
+		refreshTimestamp(zmi);
 
 		bus.sendMessage(new RmiUpsertZoneAttributesResponse(request));
 	}
@@ -432,4 +440,60 @@ public class DataModule extends Module {
 	private void handleRmiSetFallbackContactsMessage(RmiSetFallbackContactsMessage message) {
 		model.fallbackContacts = message.fallbackContacts;
 	}
+
+	private void handleRefreshAttributeValuesMessage(RefreshAttributeValuesMessage message) {
+		Map<Attribute, Program> queries = getInstalledQueries();
+		if (model.root != null) {
+			refreshAttributeValues(model.root, queries);
+		}
+	}
+
+	private Map<Attribute, Program> getInstalledQueries() {
+		Map<Attribute, Program> queries = new HashMap<>();
+		for (Map.Entry<Attribute, ValueQuery> entry : model.queryMap.entrySet()) {
+			queries.put(entry.getKey(), entry.getValue().getValue());
+		}
+		return queries;
+	}
+
+	private void refreshAttributeValues(ZMI zmi, Map<Attribute, Program> queries) {
+		List<ZMI> sons = zmi.getSons();
+		if (!sons.isEmpty()) {
+			for (ZMI son : sons) {
+				refreshAttributeValues(son, queries);
+			}
+
+			boolean changed = false;
+			for (Map.Entry<Attribute, Program> entry : queries.entrySet()) {
+				try {
+					execQuery(entry.getValue(), zmi);
+					changed = true;
+				} catch (Exception e) {
+					System.out.println(
+							"Exception when evaluating query '" + entry.getKey().getName()
+									+ "' in node '" + zmi.getName() + "'. Ignoring."
+					);
+				}
+			}
+			// TODO - internal queries
+
+			if (changed) {
+				refreshTimestamp(zmi);
+			}
+		}
+	}
+
+	private void execQuery(Program query, ZMI zmi) {
+		Interpreter interpreter = new Interpreter(zmi);
+
+		List<QueryResult> results = interpreter.interpretProgram(query);
+		for (QueryResult result : results) {
+			zmi.getAttributes().addOrChange(result.getName(), result.getValue());
+		}
+	}
+
+	private void refreshTimestamp(ZMI zmi) {
+		zmi.getAttributes().addOrChange(ZMI.TIMESTAMP_ATTR, new ValueTime());
+	}
+
 }
