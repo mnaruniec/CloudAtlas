@@ -37,6 +37,10 @@ import java.util.Map.Entry;
 public final class ZMI implements Cloneable {
 	public static final Attribute NAME_ATTR = new Attribute("name");
 	public static final Attribute TIMESTAMP_ATTR = new Attribute("timestamp");
+	public static final Attribute OWNER_ATTR = new Attribute("owner");
+	public static final Attribute LEVEL_ATTR = new Attribute("level");
+	public static final Attribute CONTACTS_ATTR = new Attribute("contacts");
+	public static final Attribute CARDINALITY_ATTR = new Attribute("cardinality");
 
 	private final AttributesMap attributes = new AttributesMap();
 	

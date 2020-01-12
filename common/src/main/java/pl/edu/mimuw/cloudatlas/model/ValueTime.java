@@ -27,6 +27,7 @@ package pl.edu.mimuw.cloudatlas.model;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * A class representing the POSIX time in milliseconds. This is a simple wrapper of a Java <code>Long</code> object.
@@ -38,7 +39,9 @@ public final class ValueTime extends ValueSimple<Long> {
 	 */
 	public static final DateFormat TIME_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
 
-	private ValueTime() {}
+	public ValueTime() {
+		this(new Date().getTime());
+	}
 
 	/**
 	 * Constructs a new <code>ValueTime</code> object wrapping the specified value.

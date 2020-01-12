@@ -11,6 +11,7 @@ import pl.edu.mimuw.cloudatlas.agent.rmi.RmiModule;
 import pl.edu.mimuw.cloudatlas.agent.timer.TimerModule;
 import pl.edu.mimuw.cloudatlas.model.PathName;
 
+import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -22,6 +23,9 @@ public class AgentMain {
 			System.setSecurityManager(new SecurityManager());
 		}
 
+		PathName localPathName = new PathName("/uw/violet07");  // TODO - config
+		InetAddress localAddress = InetAddress.getByAddress(new byte[] {127, 0, 0, 1});
+
 		Bus bus = null;
 		Module[] modules = null;
 		ModuleExecutor[] moduleExecutors = null;
@@ -30,9 +34,9 @@ public class AgentMain {
 			modules = new Module[]{
 					new TimerModule(bus),
 //					new RmiModule(bus),
-					new DataModule(bus),
+					new DataModule(bus, localPathName, localAddress),
 					new CommModule(bus),
-					new GossipModule(bus, new PathName("/uw/violet07")), // TODO - config
+					new GossipModule(bus, localPathName),
 			};
 
 			moduleExecutors = new ModuleExecutor[modules.length];

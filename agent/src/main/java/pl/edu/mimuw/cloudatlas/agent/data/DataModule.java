@@ -12,6 +12,7 @@ import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipDataResponse;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipTargetRequest;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipTargetResponse;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GossipData;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.UpdateWithGossipDataMessage;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetFallbackContactsRequest;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetFallbackContactsResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetStoredZonesRequest;
@@ -24,7 +25,13 @@ import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiSetFallbackContactsMessage;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesRequest;
 import pl.edu.mimuw.cloudatlas.model.AttributesMap;
 import pl.edu.mimuw.cloudatlas.model.PathName;
+import pl.edu.mimuw.cloudatlas.model.TypePrimitive;
+import pl.edu.mimuw.cloudatlas.model.Value;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
+import pl.edu.mimuw.cloudatlas.model.ValueInt;
+import pl.edu.mimuw.cloudatlas.model.ValueSet;
+import pl.edu.mimuw.cloudatlas.model.ValueString;
+import pl.edu.mimuw.cloudatlas.model.ValueTime;
 import pl.edu.mimuw.cloudatlas.model.ZMI;
 
 import java.net.InetAddress;
@@ -33,16 +40,22 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class DataModule extends Module {
 	private DataModel model = new DataModel();
 
-	public DataModule(Bus bus) {
+	private PathName localPathName;
+	private InetAddress localAddress;
+
+	public DataModule(Bus bus, PathName localPathName, InetAddress localAddress) {
 		super(bus);
+		// TODO - config
+		this.localPathName = localPathName;
+		this.localAddress = localAddress;
 	}
 
 	@Override
@@ -60,6 +73,8 @@ public class DataModule extends Module {
 			handleGetFreshnessInfoRequest((GetFreshnessInfoRequest) message);
 		} else if (message instanceof GetGossipDataRequest) {
 			handleGetGossipDataRequest((GetGossipDataRequest) message);
+		} else if (message instanceof UpdateWithGossipDataMessage) {
+			handleUpdateWithGossipDataMessage((UpdateWithGossipDataMessage) message);
 		} else {
 			System.out.println("Received unexpected type of message in data module. Ignoring.");
 		}
@@ -155,6 +170,146 @@ public class DataModule extends Module {
 				zmiMap.put(new PathName(path).getName(), son);
 			}
 			path.removeLast();
+		}
+	}
+
+	private void handleUpdateWithGossipDataMessage(UpdateWithGossipDataMessage message) {
+		Map<String, AttributesMap> zmiMap = message.gossipData.getZmiMap();
+		Map<PathName, AttributesMap> newZmiMap = new HashMap<>();
+		Map<PathName, AttributesMap> existingZmiMap = new HashMap<>();
+
+		try {
+			for (Map.Entry<String, AttributesMap> entry : zmiMap.entrySet()) {
+				PathName pathName = new PathName(entry.getKey());
+				verifyAttributesMap(pathName, entry.getValue());
+				if (model.zmiIndex.containsKey(pathName.getName())) {
+					existingZmiMap.put(pathName, entry.getValue());
+				} else {
+					newZmiMap.put(pathName, entry.getValue());
+				}
+			}
+		} catch (Exception e) {
+			System.out.println("Exception caught when verifying received gossip data. Leaving unchanged.");
+			e.printStackTrace();
+			return;
+		}
+
+		for (Map.Entry<PathName, AttributesMap> entry: existingZmiMap.entrySet()) {
+			substituteZMIIfFresher(entry.getKey(), entry.getValue());
+		}
+
+		for (Map.Entry<PathName, AttributesMap> entry: newZmiMap.entrySet()) {
+			PathName pathName = entry.getKey();
+			createZMIPath(pathName);
+			substituteZMI(pathName, entry.getValue());
+		}
+	}
+
+	private void verifyAttributesMap(PathName pathName, AttributesMap attributesMap) {
+		String name = ((ValueString) attributesMap.get(ZMI.NAME_ATTR)).getValue();
+		if (!name.equals(pathName.getSingletonName())) {
+			throw new IllegalArgumentException("Name is not compatible with pathName.");
+		}
+
+		String owner = ((ValueString) attributesMap.get(ZMI.OWNER_ATTR)).getValue();
+		if (owner == null) {
+			throw new NullPointerException("Owner is null.");
+		}
+		new PathName(owner);
+
+		if (pathName.getComponents().size() != ((ValueInt) attributesMap.get(ZMI.LEVEL_ATTR)).getValue()) {
+			throw new IllegalArgumentException("Level is not compatible with pathName.");
+		}
+
+		if (((ValueTime) attributesMap.get(ZMI.TIMESTAMP_ATTR)).getValue() == null) {
+			throw new NullPointerException("Timestamp is null.");
+		}
+
+		if (((ValueInt) attributesMap.get(ZMI.CARDINALITY_ATTR)).getValue() == null) {
+			throw new NullPointerException("Cardinality is null.");
+		}
+
+		Set<Value> contacts = ((ValueSet) attributesMap.get(ZMI.CONTACTS_ATTR)).getValue();
+		for (Value contact: contacts) {
+			if (((ValueContact) contact).getAddress() == null) {
+				throw new NullPointerException("Contact's address is null.");
+			}
+			new PathName(((ValueContact) contact).getName().getName());
+		}
+	}
+
+	private ZMI createZMIPath(PathName pathName) {
+		ZMI zmi = model.zmiIndex.get(pathName.getName());
+		if (zmi == null) {
+			zmi = createInitializedZMI(pathName);
+			model.zmiIndex.put(pathName.getName(), zmi);
+
+			if (pathName.equals(PathName.ROOT)) {
+				model.root = zmi;
+			} else {
+				createZMIPath(pathName.levelUp()).addSon(zmi);
+			}
+		}
+		return zmi;
+	}
+
+	private ZMI createInitializedZMI(PathName pathName) {
+		ZMI zmi = new ZMI();
+		AttributesMap attrMap = zmi.getAttributes();
+		attrMap.add(ZMI.NAME_ATTR, new ValueString(pathName.getSingletonName()));
+		attrMap.add(ZMI.LEVEL_ATTR, new ValueInt((long) pathName.getComponents().size()));
+		// TODO - consider better initialization
+		attrMap.add(ZMI.CARDINALITY_ATTR, new ValueInt(1L));
+		attrMap.add(ZMI.OWNER_ATTR, new ValueString(pathName.toString()));
+		attrMap.add(ZMI.TIMESTAMP_ATTR, new ValueTime());
+
+		// TODO - consider adding as contact to all prefixes
+		Set<Value> valueSet = new HashSet<>();
+		if (pathName.equals(localPathName)) {
+			valueSet.add(new ValueContact(
+					localPathName,
+					localAddress
+			));
+		}
+		attrMap.add(ZMI.CONTACTS_ATTR, new ValueSet(valueSet, TypePrimitive.CONTACT));
+
+		return zmi;
+	}
+
+	private void substituteZMIIfFresher(PathName pathName, AttributesMap attributesMap) {
+		long localTimestamp = model.zmiIndex.get(pathName.getName()).getTimestamp();
+		long remoteTimestamp = ((ValueTime) attributesMap.get(ZMI.TIMESTAMP_ATTR)).getValue();
+		if (localTimestamp < remoteTimestamp) {
+			substituteZMI(pathName, attributesMap);
+		}
+	}
+
+	private void substituteZMI(PathName pathName, AttributesMap attributesMap) {
+		// get old info
+		String pathNameStr = pathName.getName();
+		ZMI oldZMI = model.zmiIndex.get(pathNameStr);
+		ZMI father = oldZMI.getFather();
+		List<ZMI> sons = oldZMI.getSons();
+
+		// create new ZMI
+		ZMI newZMI = new ZMI(father);
+		newZMI.getAttributes().add(attributesMap);
+		for (ZMI son: sons) {
+			newZMI.addSon(son);
+		}
+
+		// unlink old ZMI
+		if (father != null) {
+			father.removeSon(oldZMI);
+		}
+
+		// link new ZMI
+		model.zmiIndex.put(pathNameStr, newZMI);
+		if (father != null) {
+			father.addSon(newZMI);
+		}
+		for (ZMI son: sons) {
+			son.setFather(newZMI);
 		}
 	}
 
