@@ -24,6 +24,7 @@ import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiSetFallbackContactsMessage;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesRequest;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesResponse;
+import pl.edu.mimuw.cloudatlas.agent.task.messages.PurgeOldZonesMessage;
 import pl.edu.mimuw.cloudatlas.agent.task.messages.RefreshAttributeValuesMessage;
 import pl.edu.mimuw.cloudatlas.interpreter.Interpreter;
 import pl.edu.mimuw.cloudatlas.interpreter.QueryResult;
@@ -93,6 +94,8 @@ public class DataModule extends Module {
 			handleUpdateWithGossipDataMessage((UpdateWithGossipDataMessage) message);
 		} else if (message instanceof RefreshAttributeValuesMessage) {
 			handleRefreshAttributeValuesMessage((RefreshAttributeValuesMessage) message);
+		} else if (message instanceof PurgeOldZonesMessage) {
+			handlePurgeOldZonesMessage((PurgeOldZonesMessage) message);
 		} else {
 			System.out.println("Received unexpected type of message in data module. Ignoring.");
 		}
@@ -496,4 +499,32 @@ public class DataModule extends Module {
 		zmi.getAttributes().addOrChange(ZMI.TIMESTAMP_ATTR, new ValueTime());
 	}
 
+	private void handlePurgeOldZonesMessage(PurgeOldZonesMessage message) {
+		purgeOldZones(message.timestamp);
+	}
+
+	private void purgeOldZones(long timestamp) {
+		PathName root = new PathName("");
+		if (model.root != null && purgeOldZones(model.root, root, timestamp)) {
+			model.zmiIndex.remove(root.getName());
+			model.root = null;
+		}
+	}
+
+	// true iff zmi needs to be purged
+	private boolean purgeOldZones(ZMI zmi, PathName path, long timestamp) {
+		Set<ZMI> removedSons = new HashSet<>();
+
+		for (ZMI son: zmi.getSons()) {
+			PathName sonPath = path.levelDown(son.getName());
+			if (purgeOldZones(son, sonPath, timestamp)) {
+				removedSons.add(son);
+				model.zmiIndex.remove(sonPath.getName());
+			}
+		}
+
+		zmi.removeSons(removedSons);
+
+		return zmi.getSons().isEmpty() && zmi.getTimestamp() < timestamp;
+	}
 }

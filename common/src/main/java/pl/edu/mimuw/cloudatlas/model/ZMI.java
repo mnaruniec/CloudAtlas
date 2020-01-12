@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * A zone management information. This object is a single node in a zone hierarchy. It stores zone attributes as well as
@@ -44,7 +45,7 @@ public final class ZMI implements Cloneable {
 
 	private final AttributesMap attributes = new AttributesMap();
 	
-	private final List<ZMI> sons = new ArrayList<ZMI>();
+	private List<ZMI> sons = new ArrayList<ZMI>();
 	private ZMI father;
 	
 	/**
@@ -116,6 +117,20 @@ public final class ZMI implements Cloneable {
 	 */
 	public void removeSon(ZMI son) {
 		sons.remove(son);
+	}
+
+	public void removeSons(Set<ZMI> sons) {
+		if (sons.isEmpty()) {
+			return;
+		}
+
+		List<ZMI> newSons = new ArrayList<>();
+		for (ZMI son: this.sons) {
+			if (!sons.contains(son)) {
+				newSons.add(son);
+			}
+		}
+		this.sons = newSons;
 	}
 	
 	/**
