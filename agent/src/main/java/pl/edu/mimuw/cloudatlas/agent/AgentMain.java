@@ -33,7 +33,7 @@ public class AgentMain {
 			bus = new Bus();
 			modules = new Module[]{
 					new TimerModule(bus),
-//					new RmiModule(bus),
+					new RmiModule(bus),
 					new DataModule(bus, localPathName, localAddress),
 					new CommModule(bus),
 					new GossipModule(bus, localPathName),

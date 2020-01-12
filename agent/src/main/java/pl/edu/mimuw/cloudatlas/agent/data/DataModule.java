@@ -23,6 +23,8 @@ import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiMessage;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiSetFallbackContactsMessage;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesRequest;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesResponse;
+import pl.edu.mimuw.cloudatlas.model.Attribute;
 import pl.edu.mimuw.cloudatlas.model.AttributesMap;
 import pl.edu.mimuw.cloudatlas.model.PathName;
 import pl.edu.mimuw.cloudatlas.model.TypePrimitive;
@@ -46,6 +48,15 @@ import java.util.Map;
 import java.util.Set;
 
 public class DataModule extends Module {
+	public static final String[] PROTECTED_ATTRIBUTES = {
+			ZMI.NAME_ATTR.getName(),
+			ZMI.LEVEL_ATTR.getName(),
+			ZMI.OWNER_ATTR.getName(),
+			ZMI.CARDINALITY_ATTR.getName(),
+			ZMI.TIMESTAMP_ATTR.getName(),
+			ZMI.CONTACTS_ATTR.getName()
+	};
+
 	private DataModel model = new DataModel();
 
 	private PathName localPathName;
@@ -373,7 +384,43 @@ public class DataModule extends Module {
 	}
 
 	private void handleRmiUpsertZoneAttributesRequest(RmiUpsertZoneAttributesRequest request) {
-		// TODO
+		RmiResponse response;
+		PathName pathName;
+		AttributesMap attributesMap;
+		Map<String, Value> attributes = request.attributes;;
+
+		try {
+			pathName = new PathName(request.zone);
+			for (String attr : PROTECTED_ATTRIBUTES) {
+				if (attributes.containsKey(attr)) {
+					throw new IllegalArgumentException("'" + attr + "' is a protected attribute.");
+				}
+			}
+
+			attributesMap = new AttributesMap();
+			for (Map.Entry<String, Value> entry : attributes.entrySet()) {
+				Attribute attr = new Attribute(entry.getKey());
+				if (Attribute.isQuery(attr)) {
+					throw new IllegalArgumentException("Cannot set query attribute '" + attr.getName() + "'.");
+				}
+				if (entry.getValue().isInternal()) {
+					throw new IllegalArgumentException("Value for attribute '" + attr.getName()
+							+ "' is of internal type " + entry.getValue().getType() + ".");
+				}
+				attributesMap.add(attr, entry.getValue());
+			}
+		} catch (RuntimeException e) {
+			System.out.println("Data module caught RuntimeException in upsertZoneAttributes. Leaving unchanged.");
+			response = new RmiResponse(request, e);
+			bus.sendMessage(response);
+			return;
+		}
+
+		ZMI zmi = createZMIPath(pathName);
+		zmi.getAttributes().addOrChange(attributesMap);
+		zmi.getAttributes().addOrChange(ZMI.TIMESTAMP_ATTR, new ValueTime());
+
+		bus.sendMessage(new RmiUpsertZoneAttributesResponse(request));
 	}
 
 	private void handleRmiGetFallbackContactsRequest(RmiGetFallbackContactsRequest request) {
