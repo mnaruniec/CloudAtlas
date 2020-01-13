@@ -22,7 +22,7 @@
  * WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package pl.edu.mimuw.cloudatlas.agent.api;
+package pl.edu.mimuw.cloudatlas.agent.rmi.api;
 
 import pl.edu.mimuw.cloudatlas.model.Value;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
@@ -50,4 +50,6 @@ public interface IAgentAPI extends Remote {
 	void setFallbackContacts(Set<ValueContact> contacts) throws RemoteException;
 
 	Set<ValueContact> getFallbackContacts() throws RemoteException;
+
+	void ping() throws RemoteException;
 }

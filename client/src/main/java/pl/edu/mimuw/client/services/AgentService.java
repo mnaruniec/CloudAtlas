@@ -1,7 +1,7 @@
 package pl.edu.mimuw.client.services;
 
 import org.springframework.stereotype.Service;
-import pl.edu.mimuw.cloudatlas.agent.api.IAgentAPI;
+import pl.edu.mimuw.cloudatlas.agent.rmi.api.IAgentAPI;
 import pl.edu.mimuw.cloudatlas.model.Value;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
 import pl.edu.mimuw.cloudatlas.signing.outputs.SignedInstallation;
@@ -69,5 +69,10 @@ public class AgentService implements IAgentAPI {
 	@Override
 	public Set<ValueContact> getFallbackContacts() throws RemoteException {
 		return agentAPI.getFallbackContacts();
+	}
+
+	@Override
+	public void ping() throws RemoteException {
+		agentAPI.ping();
 	}
 }

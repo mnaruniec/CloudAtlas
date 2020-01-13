@@ -2,7 +2,7 @@ package pl.edu.mimuw.cloudatlas.fetcher;
 
 import com.sun.management.OperatingSystemMXBean;
 import oshi.SystemInfo;
-import pl.edu.mimuw.cloudatlas.agent.api.IAgentAPI;
+import pl.edu.mimuw.cloudatlas.agent.rmi.api.IAgentAPI;
 import pl.edu.mimuw.cloudatlas.model.Value;
 
 import java.io.File;

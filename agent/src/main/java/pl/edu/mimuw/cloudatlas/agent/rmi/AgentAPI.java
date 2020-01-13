@@ -1,6 +1,6 @@
 package pl.edu.mimuw.cloudatlas.agent.rmi;
 
-import pl.edu.mimuw.cloudatlas.agent.api.IAgentAPI;
+import pl.edu.mimuw.cloudatlas.agent.rmi.api.IAgentAPI;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
 import pl.edu.mimuw.cloudatlas.agent.common.Constants;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetFallbackContactsRequest;
@@ -200,4 +200,7 @@ public class AgentAPI implements IAgentAPI {
 
 		return responseType.cast(result);
 	}
+
+	@Override
+	public void ping() throws RemoteException {}
 }
