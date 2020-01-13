@@ -6,7 +6,7 @@ import pl.edu.mimuw.cloudatlas.interpreter.query.Yylex;
 import pl.edu.mimuw.cloudatlas.interpreter.query.parser;
 import pl.edu.mimuw.cloudatlas.model.Attribute;
 import pl.edu.mimuw.cloudatlas.signer.api.ISignerAPI;
-import pl.edu.mimuw.cloudatlas.signing.outputs.PayloadSigner;
+import pl.edu.mimuw.cloudatlas.signing.PayloadSigner;
 import pl.edu.mimuw.cloudatlas.signing.outputs.SignedInstallation;
 import pl.edu.mimuw.cloudatlas.signing.outputs.SignedUninstallation;
 import pl.edu.mimuw.cloudatlas.signing.outputs.payloads.InstallationPayload;

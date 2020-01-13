@@ -23,7 +23,9 @@ application {
     mainClassName = 'pl.edu.mimuw.cloudatlas.signer.SignerMain'
     applicationDefaultJvmArgs = [
             '-Djava.security.policy=./config/server.policy',
-            '-Djava.rmi.server.codebase=file://' + buildDir + '/install/signer/lib/signer.jar',
+            '-Djava.rmi.server.codebase=' +
+                    'file://' + buildDir + '/install/signer/lib/signer.jar' +
+                    ' file://' + buildDir + '/install/signer/lib/common.jar',
             '-Djava.rmi.server.hostname=localhost'
     ]
 }

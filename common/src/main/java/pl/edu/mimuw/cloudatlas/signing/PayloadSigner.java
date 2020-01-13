@@ -1,4 +1,4 @@
-package pl.edu.mimuw.cloudatlas.signing.outputs;
+package pl.edu.mimuw.cloudatlas.signing;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;
