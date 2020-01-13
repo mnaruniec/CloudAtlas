@@ -4,8 +4,8 @@ import pl.edu.mimuw.cloudatlas.interpreter.cli.InterpreterUtils;
 import pl.edu.mimuw.cloudatlas.model.Attribute;
 import pl.edu.mimuw.cloudatlas.model.PathName;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
-import pl.edu.mimuw.cloudatlas.model.ValueQuery;
 import pl.edu.mimuw.cloudatlas.model.ZMI;
+import pl.edu.mimuw.cloudatlas.signing.outputs.SignedObject;
 
 import java.net.UnknownHostException;
 import java.text.ParseException;
@@ -22,7 +22,7 @@ class DataModel {
 
 	Set<ValueContact> fallbackContacts = new HashSet<>();
 
-	Map<Attribute, ValueQuery> queryMap = new HashMap<>();
+	Map<Attribute, SignedObject> queryMap = new HashMap<>();
 
 	public DataModel() {
 		// TODO - remove

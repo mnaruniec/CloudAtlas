@@ -41,6 +41,8 @@ import pl.edu.mimuw.cloudatlas.model.ValueSet;
 import pl.edu.mimuw.cloudatlas.model.ValueString;
 import pl.edu.mimuw.cloudatlas.model.ValueTime;
 import pl.edu.mimuw.cloudatlas.model.ZMI;
+import pl.edu.mimuw.cloudatlas.signing.outputs.SignedObject;
+import pl.edu.mimuw.cloudatlas.signing.outputs.payloads.InstallationPayload;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -454,8 +456,11 @@ public class DataModule extends Module {
 
 	private Map<Attribute, Program> getInstalledQueries() {
 		Map<Attribute, Program> queries = new HashMap<>();
-		for (Map.Entry<Attribute, ValueQuery> entry : model.queryMap.entrySet()) {
-			queries.put(entry.getKey(), entry.getValue().getValue());
+		for (Map.Entry<Attribute, SignedObject> entry : model.queryMap.entrySet()) {
+			SignedObject signedObject = entry.getValue();
+			if (signedObject.getPayload() instanceof InstallationPayload) {
+				queries.put(entry.getKey(), ((InstallationPayload) signedObject.getPayload()).getQuery());
+			}
 		}
 		return queries;
 	}

@@ -9,10 +9,12 @@ import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.FreshnessInfoRespons
 import pl.edu.mimuw.cloudatlas.agent.comm.serializers.Inet4AddressSerializer;
 import pl.edu.mimuw.cloudatlas.agent.comm.serializers.Inet6AddressSerializer;
 import pl.edu.mimuw.cloudatlas.agent.comm.serializers.PathNameSerializer;
+import pl.edu.mimuw.cloudatlas.agent.comm.serializers.ProgramSerializer;
 import pl.edu.mimuw.cloudatlas.agent.comm.serializers.ValueListSerializer;
 import pl.edu.mimuw.cloudatlas.agent.comm.serializers.ValueSetSerializer;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.FreshnessInfo;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GossipData;
+import pl.edu.mimuw.cloudatlas.interpreter.query.Absyn.Program;
 import pl.edu.mimuw.cloudatlas.model.Attribute;
 import pl.edu.mimuw.cloudatlas.model.AttributesMap;
 import pl.edu.mimuw.cloudatlas.model.PathName;
@@ -50,6 +52,7 @@ public class KryoPool extends Pool<Kryo> {
 		kryo.register(PathName.class, new PathNameSerializer());
 		kryo.register(ValueList.class, new ValueListSerializer());
 		kryo.register(ValueSet.class, new ValueSetSerializer());
+		kryo.register(Program.class, new ProgramSerializer());
 
 		kryo.register(ArrayList.class);
 		kryo.register(HashSet.class);
