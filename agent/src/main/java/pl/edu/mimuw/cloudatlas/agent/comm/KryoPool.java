@@ -6,37 +6,9 @@ import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.DataRequestPayload;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.DataResponsePayload;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.FreshnessInfoRequestPayload;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.FreshnessInfoResponsePayload;
-import pl.edu.mimuw.cloudatlas.agent.comm.serializers.Inet4AddressSerializer;
-import pl.edu.mimuw.cloudatlas.agent.comm.serializers.Inet6AddressSerializer;
-import pl.edu.mimuw.cloudatlas.agent.comm.serializers.PathNameSerializer;
-import pl.edu.mimuw.cloudatlas.agent.comm.serializers.ProgramSerializer;
-import pl.edu.mimuw.cloudatlas.agent.comm.serializers.ValueListSerializer;
-import pl.edu.mimuw.cloudatlas.agent.comm.serializers.ValueSetSerializer;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.FreshnessInfo;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GossipData;
-import pl.edu.mimuw.cloudatlas.interpreter.query.Absyn.Program;
-import pl.edu.mimuw.cloudatlas.model.Attribute;
-import pl.edu.mimuw.cloudatlas.model.AttributesMap;
-import pl.edu.mimuw.cloudatlas.model.PathName;
-import pl.edu.mimuw.cloudatlas.model.Type;
-import pl.edu.mimuw.cloudatlas.model.TypeCollection;
-import pl.edu.mimuw.cloudatlas.model.TypePrimitive;
-import pl.edu.mimuw.cloudatlas.model.ValueBoolean;
-import pl.edu.mimuw.cloudatlas.model.ValueContact;
-import pl.edu.mimuw.cloudatlas.model.ValueDouble;
-import pl.edu.mimuw.cloudatlas.model.ValueDuration;
-import pl.edu.mimuw.cloudatlas.model.ValueInt;
-import pl.edu.mimuw.cloudatlas.model.ValueList;
-import pl.edu.mimuw.cloudatlas.model.ValueNull;
-import pl.edu.mimuw.cloudatlas.model.ValueSet;
-import pl.edu.mimuw.cloudatlas.model.ValueString;
-import pl.edu.mimuw.cloudatlas.model.ValueTime;
-
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import pl.edu.mimuw.cloudatlas.serialization.KryoInitializer;
 
 public class KryoPool extends Pool<Kryo> {
 	public KryoPool() {
@@ -46,18 +18,12 @@ public class KryoPool extends Pool<Kryo> {
 	@Override
 	protected Kryo create() {
 		Kryo kryo = new Kryo();
+		KryoInitializer.initializeKryo(kryo);
+		registerLocalClasses(kryo);
+		return kryo;
+	}
 
-		kryo.register(Inet4Address.class, new Inet4AddressSerializer());
-		kryo.register(Inet6Address.class, new Inet6AddressSerializer());
-		kryo.register(PathName.class, new PathNameSerializer());
-		kryo.register(ValueList.class, new ValueListSerializer());
-		kryo.register(ValueSet.class, new ValueSetSerializer());
-		kryo.register(Program.class, new ProgramSerializer());
-
-		kryo.register(ArrayList.class);
-		kryo.register(HashSet.class);
-		kryo.register(HashMap.class);
-
+	private static void registerLocalClasses(Kryo kryo) {
 		kryo.register(FreshnessInfoRequestPayload.class);
 		kryo.register(FreshnessInfoResponsePayload.class);
 		kryo.register(DataRequestPayload.class);
@@ -65,22 +31,5 @@ public class KryoPool extends Pool<Kryo> {
 
 		kryo.register(FreshnessInfo.class);
 		kryo.register(GossipData.class);
-
-		kryo.register(Attribute.class);
-		kryo.register(AttributesMap.class);
-		kryo.register(Type.PrimaryType.class);
-		kryo.register(TypeCollection.class);
-		kryo.register(TypePrimitive.class);
-		kryo.register(ValueBoolean.class);
-		kryo.register(ValueContact.class);
-		kryo.register(ValueDouble.class);
-		kryo.register(ValueDuration.class);
-		kryo.register(ValueInt.class);
-		kryo.register(ValueNull.class);
-		kryo.register(ValueString.class);
-		kryo.register(ValueTime.class);
-		// TODO - ValueQuery, ZMI
-
-		return kryo;
 	}
 }

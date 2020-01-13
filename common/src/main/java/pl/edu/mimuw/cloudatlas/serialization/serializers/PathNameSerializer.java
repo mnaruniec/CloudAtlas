@@ -1,4 +1,4 @@
-package pl.edu.mimuw.cloudatlas.agent.comm.serializers;
+package pl.edu.mimuw.cloudatlas.serialization.serializers;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
