@@ -8,7 +8,7 @@ public final class InstallationPayload extends SignedObjectPayload {
 
 	private InstallationPayload() {}
 
-	protected InstallationPayload(long timestamp, Attribute name, Program query) {
+	public InstallationPayload(long timestamp, Attribute name, Program query) {
 		super(timestamp, name);
 		this.query = query;
 	}

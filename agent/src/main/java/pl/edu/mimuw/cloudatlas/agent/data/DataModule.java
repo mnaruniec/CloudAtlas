@@ -27,6 +27,7 @@ import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesRespons
 import pl.edu.mimuw.cloudatlas.agent.task.messages.PurgeOldZonesMessage;
 import pl.edu.mimuw.cloudatlas.agent.task.messages.RefreshAttributeValuesMessage;
 import pl.edu.mimuw.cloudatlas.interpreter.Interpreter;
+import pl.edu.mimuw.cloudatlas.interpreter.ProtectedAttributesHelper;
 import pl.edu.mimuw.cloudatlas.interpreter.QueryResult;
 import pl.edu.mimuw.cloudatlas.interpreter.query.Absyn.Program;
 import pl.edu.mimuw.cloudatlas.model.Attribute;
@@ -56,15 +57,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class DataModule extends Module {
-	public static final String[] PROTECTED_ATTRIBUTES = {
-			ZMI.NAME_ATTR.getName(),
-			ZMI.LEVEL_ATTR.getName(),
-			ZMI.OWNER_ATTR.getName(),
-			ZMI.CARDINALITY_ATTR.getName(),
-			ZMI.TIMESTAMP_ATTR.getName(),
-			ZMI.CONTACTS_ATTR.getName()
-	};
-
 	private DataModel model = new DataModel();
 
 	private PathName localPathName;
@@ -404,7 +396,7 @@ public class DataModule extends Module {
 
 		try {
 			pathName = new PathName(request.zone);
-			for (String attr : PROTECTED_ATTRIBUTES) {
+			for (String attr : ProtectedAttributesHelper.PROTECTED_ATTRIBUTES) {
 				if (attributes.containsKey(attr)) {
 					throw new IllegalArgumentException("'" + attr + "' is a protected attribute.");
 				}
