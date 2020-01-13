@@ -5,7 +5,7 @@ import pl.edu.mimuw.cloudatlas.model.Attribute;
 public final class UninstallationPayload extends SignedObjectPayload {
 	private UninstallationPayload() {}
 
-	protected UninstallationPayload(long timestamp, Attribute name) {
+	public UninstallationPayload(long timestamp, Attribute name) {
 		super(timestamp, name);
 	}
 }

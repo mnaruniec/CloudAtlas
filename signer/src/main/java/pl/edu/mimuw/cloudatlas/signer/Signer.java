@@ -10,6 +10,7 @@ import pl.edu.mimuw.cloudatlas.signing.outputs.PayloadSigner;
 import pl.edu.mimuw.cloudatlas.signing.outputs.SignedInstallation;
 import pl.edu.mimuw.cloudatlas.signing.outputs.SignedUninstallation;
 import pl.edu.mimuw.cloudatlas.signing.outputs.payloads.InstallationPayload;
+import pl.edu.mimuw.cloudatlas.signing.outputs.payloads.UninstallationPayload;
 
 import javax.crypto.NoSuchPaddingException;
 import java.io.ByteArrayInputStream;
@@ -86,6 +87,7 @@ public class Signer implements ISignerAPI {
 			}
 		} catch (Exception e) {
 			System.out.println("Caught exception when installing query.");
+			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 	}
@@ -98,6 +100,31 @@ public class Signer implements ISignerAPI {
 
 	@Override
 	public SignedUninstallation uninstallQuery(String name) {
-		return null;
+		try {
+			synchronized (lock) {
+				Attribute attr = new Attribute("&" + name);
+				SignedUninstallation signed = signUninstallation(attr);
+
+				List<Attribute> fields = queryMap.get(attr);
+				if (fields != null) {
+					queryMap.remove(attr);
+					for (Attribute field: fields) {
+						attributeMap.remove(field);
+					}
+				}
+
+				return signed;
+			}
+		} catch (Exception e) {
+			System.out.println("Caught exception when uninstalling query.");
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+
+	private SignedUninstallation signUninstallation(Attribute name) {
+		UninstallationPayload payload = new UninstallationPayload(new Date().getTime(), name);
+		byte[] signature = payloadSigner.sign(payload);
+		return new SignedUninstallation(payload, signature);
 	}
 }

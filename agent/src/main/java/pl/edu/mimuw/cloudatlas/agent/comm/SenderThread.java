@@ -123,7 +123,6 @@ public class SenderThread implements Runnable {
 		}
 	}
 
-
 	private void restoreSocket() {
 		do {
 			if (socket != null) {
