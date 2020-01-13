@@ -445,6 +445,7 @@ public class DataModule extends Module {
 	}
 
 	private void handleRefreshAttributeValuesMessage(RefreshAttributeValuesMessage message) {
+		System.out.println("Data module refreshing.");
 		Map<Attribute, Program> queries = getInstalledQueries();
 		if (model.root != null) {
 			refreshAttributeValues(model.root, queries);
@@ -500,6 +501,7 @@ public class DataModule extends Module {
 	}
 
 	private void handlePurgeOldZonesMessage(PurgeOldZonesMessage message) {
+		System.out.println("Data module purging.");
 		purgeOldZones(message.timestamp);
 	}
 

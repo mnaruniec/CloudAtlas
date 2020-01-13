@@ -6,4 +6,5 @@ public abstract class Constants {
 	public static final String DEFAULT_DATA_MODULE_NAME = "data";
 	public static final String DEFAULT_GOSSIP_MODULE_NAME = "gossip";
 	public static final String DEFAULT_COMM_MODULE_NAME = "comm";
+	public static final String DEFAULT_TASK_MODULE_NAME = "task";
 }
