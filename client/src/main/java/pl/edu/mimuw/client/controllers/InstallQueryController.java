@@ -7,9 +7,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import pl.edu.mimuw.client.services.AgentService;
+import pl.edu.mimuw.client.services.SignerService;
 
 @Controller
 public class InstallQueryController {
+	@Autowired
+	private SignerService signerService;
+
 	@Autowired
 	private AgentService agentService;
 

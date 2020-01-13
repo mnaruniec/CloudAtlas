@@ -20,6 +20,7 @@ dependencies {
     implementation 'org.webjars:chartjs:2.8.0'
     implementation project(':common')
     implementation project(':agent')
+    implementation project(':signer')
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
