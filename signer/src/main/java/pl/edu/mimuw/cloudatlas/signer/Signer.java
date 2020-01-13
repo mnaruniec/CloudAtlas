@@ -14,6 +14,7 @@ import pl.edu.mimuw.cloudatlas.signing.outputs.payloads.UninstallationPayload;
 
 import javax.crypto.NoSuchPaddingException;
 import java.io.ByteArrayInputStream;
+import java.rmi.RemoteException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -127,4 +128,7 @@ public class Signer implements ISignerAPI {
 		byte[] signature = payloadSigner.sign(payload);
 		return new SignedUninstallation(payload, signature);
 	}
+
+	@Override
+	public void ping() throws RemoteException {}
 }

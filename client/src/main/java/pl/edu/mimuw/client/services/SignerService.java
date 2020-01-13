@@ -18,6 +18,7 @@ public class SignerService implements ISignerAPI {
 		// TODO - config hostname
 		Registry registry = LocateRegistry.getRegistry();
 		signerAPI = (ISignerAPI) registry.lookup("SignerAPI");
+		signerAPI.ping();
 	}
 
 	@Override
@@ -28,5 +29,10 @@ public class SignerService implements ISignerAPI {
 	@Override
 	public SignedUninstallation uninstallQuery(String name) throws RemoteException {
 		return this.signerAPI.uninstallQuery(name);
+	}
+
+	@Override
+	public void ping() throws RemoteException {
+		this.signerAPI.ping();
 	}
 }

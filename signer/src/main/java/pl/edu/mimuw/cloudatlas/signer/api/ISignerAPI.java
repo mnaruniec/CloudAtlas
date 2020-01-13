@@ -10,4 +10,6 @@ public interface ISignerAPI extends Remote {
 	SignedInstallation installQuery(String name, String query) throws RemoteException;
 
 	SignedUninstallation uninstallQuery(String name) throws RemoteException;
+
+	void ping() throws RemoteException;
 }

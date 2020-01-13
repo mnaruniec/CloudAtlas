@@ -24,6 +24,8 @@
 
 package pl.edu.mimuw.cloudatlas.model;
 
+import java.io.Serializable;
+
 /**
  * Represents an attribute (without value, name only).
  * <p>
@@ -32,13 +34,9 @@ package pl.edu.mimuw.cloudatlas.model;
  * <p>
  * This class is immutable.
  */
-public final class Attribute {
+public final class Attribute implements Serializable {
 	private final String name;
 
-	private Attribute() {
-		name = "";
-	}
-	
 	/**
 	 * Creates a new <code>Attribute</code> object with the specified <code>name</code>.
 	 * 

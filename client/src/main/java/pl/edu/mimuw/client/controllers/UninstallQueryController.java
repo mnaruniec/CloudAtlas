@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import pl.edu.mimuw.client.services.AgentService;
 import pl.edu.mimuw.client.services.SignerService;
+import pl.edu.mimuw.cloudatlas.signing.outputs.SignedUninstallation;
 
 @Controller
 public class UninstallQueryController {
@@ -46,8 +47,8 @@ public class UninstallQueryController {
 			if (!uninstallForm.isFilled()) {
 				throw new IllegalArgumentException("Provide values in all fields.");
 			}
-			// TODO
-//			agentService.uninstallQuery(uninstallForm.getName());
+			SignedUninstallation signed = signerService.uninstallQuery(uninstallForm.getName());
+			agentService.uninstallQuery(signed);
 		} catch (Exception e) {
 			e.printStackTrace();
 			message = "ERROR:" + e.getMessage();

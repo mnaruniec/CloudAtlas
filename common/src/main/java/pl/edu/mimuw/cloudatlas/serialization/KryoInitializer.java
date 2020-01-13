@@ -1,7 +1,7 @@
 package pl.edu.mimuw.cloudatlas.serialization;
 
 import com.esotericsoftware.kryo.Kryo;
-import pl.edu.mimuw.cloudatlas.interpreter.query.Absyn.Program;
+import pl.edu.mimuw.cloudatlas.interpreter.query.Absyn.ProgramC;
 import pl.edu.mimuw.cloudatlas.model.Attribute;
 import pl.edu.mimuw.cloudatlas.model.AttributesMap;
 import pl.edu.mimuw.cloudatlas.model.PathName;
@@ -18,10 +18,11 @@ import pl.edu.mimuw.cloudatlas.model.ValueNull;
 import pl.edu.mimuw.cloudatlas.model.ValueSet;
 import pl.edu.mimuw.cloudatlas.model.ValueString;
 import pl.edu.mimuw.cloudatlas.model.ValueTime;
+import pl.edu.mimuw.cloudatlas.serialization.serializers.AttributeSerializer;
 import pl.edu.mimuw.cloudatlas.serialization.serializers.Inet4AddressSerializer;
 import pl.edu.mimuw.cloudatlas.serialization.serializers.Inet6AddressSerializer;
 import pl.edu.mimuw.cloudatlas.serialization.serializers.PathNameSerializer;
-import pl.edu.mimuw.cloudatlas.serialization.serializers.ProgramSerializer;
+import pl.edu.mimuw.cloudatlas.serialization.serializers.ProgramCSerializer;
 import pl.edu.mimuw.cloudatlas.serialization.serializers.SignedInstallationSerializer;
 import pl.edu.mimuw.cloudatlas.serialization.serializers.SignedUninstallationSerializer;
 import pl.edu.mimuw.cloudatlas.serialization.serializers.ValueListSerializer;
@@ -45,9 +46,10 @@ public class KryoInitializer {
 		kryo.register(Inet4Address.class, new Inet4AddressSerializer());
 		kryo.register(Inet6Address.class, new Inet6AddressSerializer());
 		kryo.register(PathName.class, new PathNameSerializer());
+		kryo.register(Attribute.class, new AttributeSerializer());
 		kryo.register(ValueList.class, new ValueListSerializer());
 		kryo.register(ValueSet.class, new ValueSetSerializer());
-		kryo.register(Program.class, new ProgramSerializer());
+		kryo.register(ProgramC.class, new ProgramCSerializer());
 		kryo.register(SignedInstallation.class, new SignedInstallationSerializer());
 		kryo.register(SignedUninstallation.class, new SignedUninstallationSerializer());
 
@@ -55,7 +57,6 @@ public class KryoInitializer {
 		kryo.register(HashSet.class);
 		kryo.register(HashMap.class);
 
-		kryo.register(Attribute.class);
 		kryo.register(AttributesMap.class);
 		kryo.register(Type.PrimaryType.class);
 		kryo.register(TypeCollection.class);
