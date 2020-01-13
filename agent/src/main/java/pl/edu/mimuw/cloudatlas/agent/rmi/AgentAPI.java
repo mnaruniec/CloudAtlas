@@ -22,7 +22,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class AgentAPI implements IAgentAPI {
@@ -147,13 +149,20 @@ public class AgentAPI implements IAgentAPI {
 		} catch (InterruptedException e) {
 			System.out.println("Interrupted exception in RMI module. Shutting down.");
 			System.exit(1);
+		} catch (ExecutionException e) {
+			Throwable cause = e.getCause();
+			if (cause instanceof RuntimeException) {
+//				System.out.println("RuntimeException in RMI module. Rethrowing to client.");
+				throw (RuntimeException) cause;
+			} else {
+				System.out.println("Unexpected future ExecutionException in RMI module. Throwing RemoteException..");
+				e.printStackTrace();
+			}
 		} catch (RuntimeException e) {
-			System.out.println("RuntimeException in RMI module. Rethrowing.");
-			e.printStackTrace();
+			System.out.println("RuntimeException in RMI module. Rethrowing to client.");
 			throw e;
-		} catch (Exception e) {
-			System.out.println("Future execution exception in RMI module. Throwing RemoteException.");
-			e.printStackTrace();
+		} catch (TimeoutException e) {
+			System.out.println("Future TimeoutException in RMI module. Throwing RemoteException.");
 		} finally {
 			futureMap.remove(id);
 		}
