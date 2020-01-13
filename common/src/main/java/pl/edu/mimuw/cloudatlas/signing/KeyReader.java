@@ -29,6 +29,6 @@ public class KeyReader {
 	}
 
 	private static KeyFactory getKeyFactory() throws NoSuchAlgorithmException {
-		return KeyFactory.getInstance(PayloadSigner.ENCRYPTION_ALGORITHM);
+		return KeyFactory.getInstance(CryptoConstants.ENCRYPTION_ALGORITHM);
 	}
 }
