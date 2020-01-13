@@ -2,7 +2,9 @@ package pl.edu.mimuw.cloudatlas.signing.outputs;
 
 import pl.edu.mimuw.cloudatlas.signing.outputs.payloads.SignedObjectPayload;
 
-public abstract class SignedObject<T extends SignedObjectPayload> {
+import java.io.Serializable;
+
+public abstract class SignedObject<T extends SignedObjectPayload> implements Serializable {
 	private T payload;
 	private byte[] signature;
 

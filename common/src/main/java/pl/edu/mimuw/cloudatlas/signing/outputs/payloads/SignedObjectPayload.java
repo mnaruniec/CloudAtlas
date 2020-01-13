@@ -2,7 +2,9 @@ package pl.edu.mimuw.cloudatlas.signing.outputs.payloads;
 
 import pl.edu.mimuw.cloudatlas.model.Attribute;
 
-public abstract class SignedObjectPayload {
+import java.io.Serializable;
+
+public abstract class SignedObjectPayload implements Serializable {
 	private long timestamp;
 	private Attribute name;
 

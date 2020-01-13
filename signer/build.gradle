@@ -11,7 +11,6 @@ dependencies {
     implementation files('../lib/cup.jar')
     implementation files('../lib/JLex.jar')
     implementation project(':common')
-    implementation project(':agent')
 }
 
 test {
@@ -24,7 +23,7 @@ application {
     mainClassName = 'pl.edu.mimuw.cloudatlas.signer.SignerMain'
     applicationDefaultJvmArgs = [
             '-Djava.security.policy=./config/server.policy',
-            '-Djava.rmi.server.codebase=file://' + buildDir + '/install/agent/lib/agent.jar',
+            '-Djava.rmi.server.codebase=file://' + buildDir + '/install/signer/lib/signer.jar',
             '-Djava.rmi.server.hostname=localhost'
     ]
 }
