@@ -16,6 +16,8 @@ import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesRequest
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesResponse;
 import pl.edu.mimuw.cloudatlas.model.Value;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
+import pl.edu.mimuw.cloudatlas.signing.outputs.SignedInstallation;
+import pl.edu.mimuw.cloudatlas.signing.outputs.SignedUninstallation;
 
 import java.rmi.RemoteException;
 import java.util.Map;
@@ -77,12 +79,12 @@ public class AgentAPI implements IAgentAPI {
 	}
 
 	@Override
-	public void installQuery(String name, String query) throws RemoteException {
+	public void installQuery(SignedInstallation signedInstallation) throws RemoteException {
 		// TODO
 	}
 
 	@Override
-	public void uninstallQuery(String name) throws RemoteException {
+	public void uninstallQuery(SignedUninstallation signedUninstallation) throws RemoteException {
 		// TODO
 	}
 

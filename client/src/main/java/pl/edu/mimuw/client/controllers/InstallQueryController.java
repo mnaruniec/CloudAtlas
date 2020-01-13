@@ -55,7 +55,8 @@ public class InstallQueryController {
 			if (!installForm.isFilled()) {
 				throw new IllegalArgumentException("Provide values in all fields.");
 			}
-			agentService.installQuery(installForm.getName(), installForm.getQuery());
+			// TODO
+//			agentService.installQuery(installForm.getName(), installForm.getQuery());
 		} catch (Exception e) {
 			e.printStackTrace();
 			message = "ERROR:" + e.getMessage();

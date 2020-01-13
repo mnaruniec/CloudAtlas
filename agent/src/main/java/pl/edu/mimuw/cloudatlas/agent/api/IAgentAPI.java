@@ -26,6 +26,8 @@ package pl.edu.mimuw.cloudatlas.agent.api;
 
 import pl.edu.mimuw.cloudatlas.model.Value;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
+import pl.edu.mimuw.cloudatlas.signing.outputs.SignedInstallation;
+import pl.edu.mimuw.cloudatlas.signing.outputs.SignedUninstallation;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -41,10 +43,9 @@ public interface IAgentAPI extends Remote {
 	void upsertZoneAttributes(String zone, Map<String, Value> attributes)
 			throws RemoteException;
 
-	void installQuery(String name, String query)
-			throws RemoteException;
+	void installQuery(SignedInstallation signedInstallation) throws RemoteException;
 
-	void uninstallQuery(String name) throws RemoteException;
+	void uninstallQuery(SignedUninstallation signedUninstallation) throws RemoteException;
 
 	void setFallbackContacts(Set<ValueContact> contacts) throws RemoteException;
 

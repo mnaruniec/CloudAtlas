@@ -46,7 +46,8 @@ public class UninstallQueryController {
 			if (!uninstallForm.isFilled()) {
 				throw new IllegalArgumentException("Provide values in all fields.");
 			}
-			agentService.uninstallQuery(uninstallForm.getName());
+			// TODO
+//			agentService.uninstallQuery(uninstallForm.getName());
 		} catch (Exception e) {
 			e.printStackTrace();
 			message = "ERROR:" + e.getMessage();
