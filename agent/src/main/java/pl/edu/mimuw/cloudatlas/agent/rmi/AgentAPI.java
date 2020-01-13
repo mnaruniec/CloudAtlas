@@ -9,9 +9,13 @@ import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetStoredZonesRequest;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetStoredZonesResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetZoneAttributesRequest;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetZoneAttributesResponse;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiInstallQueryRequest;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiInstallQueryResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiMessage;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiSetFallbackContactsMessage;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUninstallQueryRequest;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUninstallQueryResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesRequest;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesResponse;
 import pl.edu.mimuw.cloudatlas.model.Value;
@@ -80,12 +84,28 @@ public class AgentAPI implements IAgentAPI {
 
 	@Override
 	public void installQuery(SignedInstallation signedInstallation) throws RemoteException {
-		// TODO
+		RmiMessage request = new RmiInstallQueryRequest(
+				Constants.DEFAULT_DATA_MODULE_NAME,
+				Constants.DEFAULT_RMI_MODULE_NAME,
+				getNextRequestId(),
+				signedInstallation
+		);
+
+		// exception is thrown transparently
+		sendAndReceive(request, RmiInstallQueryResponse.class);
 	}
 
 	@Override
 	public void uninstallQuery(SignedUninstallation signedUninstallation) throws RemoteException {
-		// TODO
+		RmiMessage request = new RmiUninstallQueryRequest(
+				Constants.DEFAULT_DATA_MODULE_NAME,
+				Constants.DEFAULT_RMI_MODULE_NAME,
+				getNextRequestId(),
+				signedUninstallation
+		);
+
+		// exception is thrown transparently
+		sendAndReceive(request, RmiUninstallQueryResponse.class);
 	}
 
 	@Override

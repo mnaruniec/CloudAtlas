@@ -19,9 +19,11 @@ import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetStoredZonesRequest;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetStoredZonesResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetZoneAttributesRequest;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetZoneAttributesResponse;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiInstallQueryRequest;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiMessage;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiSetFallbackContactsMessage;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUninstallQueryRequest;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesRequest;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesResponse;
 import pl.edu.mimuw.cloudatlas.agent.task.messages.PurgeOldZonesMessage;
@@ -345,6 +347,10 @@ public class DataModule extends Module {
 				handleRmiGetZoneAttributesRequest((RmiGetZoneAttributesRequest) message);
 			} else if (message instanceof RmiUpsertZoneAttributesRequest) {
 				handleRmiUpsertZoneAttributesRequest((RmiUpsertZoneAttributesRequest) message);
+			} else if (message instanceof RmiInstallQueryRequest) {
+				handleRmiInstallQueryRequest((RmiInstallQueryRequest) message);
+			} else if (message instanceof RmiUninstallQueryRequest) {
+				handleRmiUninstallQueryRequest((RmiUninstallQueryRequest) message);
 			} else {
 				System.out.println("Received unexpected type of RMI message in data module. Ignoring.");
 			}
@@ -426,6 +432,14 @@ public class DataModule extends Module {
 		refreshTimestamp(zmi);
 
 		bus.sendMessage(new RmiUpsertZoneAttributesResponse(request));
+	}
+
+	private void handleRmiInstallQueryRequest(RmiInstallQueryRequest request) {
+		// TODO
+	}
+
+	private void handleRmiUninstallQueryRequest(RmiUninstallQueryRequest request) {
+		// TODO
 	}
 
 	private void handleRmiGetFallbackContactsRequest(RmiGetFallbackContactsRequest request) {
