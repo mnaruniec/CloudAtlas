@@ -17,6 +17,7 @@ public class ReceiverThread implements Runnable {
 	public static final long SOCKET_CREATION_INTERVAL_MS = 1000;
 
 	private InetAddress localAddress;
+	private long transmissionTimeoutMs;
 
 	private Bus bus;
 	private Kryo kryo;
@@ -26,6 +27,7 @@ public class ReceiverThread implements Runnable {
 
 	public ReceiverThread(Bus bus, AgentConfig config, Kryo kryo) throws SocketException {
 		this.localAddress = config.getIP();
+		this.transmissionTimeoutMs = config.getUdpReceiveTimeoutMs();
 		this.bus = bus;
 		this.kryo = kryo;
 		this.socket = createSocket();
@@ -45,6 +47,11 @@ public class ReceiverThread implements Runnable {
 		}
 	}
 
+	public void timeoutTransmission(TransmissionId transmissionId) {
+		// TODO - consider lazy for debug message
+		transmissionMap.remove(transmissionId);
+	}
+
 	private void processDatagram(DatagramPacket datagram) {
 		if (datagram.getLength() > CommModule.MAX_DATAGRAM_SIZE) {
 			System.out.println("Receiver thread got a too long datagram. Ignoring.");
@@ -62,7 +69,7 @@ public class ReceiverThread implements Runnable {
 
 		Transmission transmission = transmissionMap.computeIfAbsent(
 				transmissionId,
-				key -> new Transmission(bus, kryo, transmissionId)
+				key -> new Transmission(bus, kryo, transmissionId, transmissionTimeoutMs)
 		);
 
 		insertDatagram(transmission, datagram);

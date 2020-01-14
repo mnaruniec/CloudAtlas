@@ -4,9 +4,11 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import pl.edu.mimuw.cloudatlas.agent.comm.CommModule;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.InNetworkMessage;
+import pl.edu.mimuw.cloudatlas.agent.comm.messages.local.TriggerTransmissionTimeoutMessage;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.Payload;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
 import pl.edu.mimuw.cloudatlas.agent.common.Constants;
+import pl.edu.mimuw.cloudatlas.agent.timer.SetTimeoutMessage;
 
 import java.net.DatagramPacket;
 import java.nio.ByteBuffer;
@@ -23,11 +25,11 @@ public class Transmission {
 
 	private Map<Integer, DatagramPacket> datagramMap = new HashMap<>();
 
-	public Transmission(Bus bus, Kryo kryo, TransmissionId transmissionId) {
+	public Transmission(Bus bus, Kryo kryo, TransmissionId transmissionId, long timeout) {
 		this.bus = bus;
 		this.kryo = kryo;
 		this.transmissionId = transmissionId;
-		// TODO - register cleaning
+		setTransmissionTimeout(timeout);
 	}
 
 	public void insertDatagram(DatagramPacket datagram) {
@@ -143,5 +145,22 @@ public class Transmission {
 	private void finishWithError(String message) {
 		System.out.println(message + " Finishing.");
 		finished = true;
+	}
+
+	private void setTransmissionTimeout(long timeout) {
+		Runnable callback = () -> {
+			bus.sendMessage(new TriggerTransmissionTimeoutMessage(
+					Constants.DEFAULT_COMM_MODULE_NAME,
+					Constants.DEFAULT_TIMER_MODULE_NAME,
+					transmissionId
+			));
+		};
+
+		bus.sendMessage(new SetTimeoutMessage(
+				Constants.DEFAULT_TIMER_MODULE_NAME,
+				Constants.DEFAULT_COMM_MODULE_NAME,
+				callback,
+				timeout
+		));
 	}
 }

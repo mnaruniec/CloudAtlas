@@ -37,7 +37,7 @@ public class AgentMain {
 					new TimerModule(bus),
 					new RmiModule(bus),
 					new DataModule(bus, config),
-					new CommModule(bus),
+					new CommModule(bus, config),
 					new GossipModule(bus, config),
 					new TaskModule(bus, config),
 			};

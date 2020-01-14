@@ -4,6 +4,7 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.util.Pool;
 import pl.edu.mimuw.cloudatlas.agent.AgentConfig;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.OutNetworkMessage;
+import pl.edu.mimuw.cloudatlas.agent.comm.messages.local.TriggerTransmissionTimeoutMessage;
 import pl.edu.mimuw.cloudatlas.agent.comm.receiver.ReceiverThread;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
 import pl.edu.mimuw.cloudatlas.agent.common.Constants;
@@ -51,6 +52,8 @@ public class CommModule extends Module {
 	public void handleMessage(Message message) {
 		if (message instanceof OutNetworkMessage) {
 			handleOutNetworkMessage((OutNetworkMessage) message);
+		} else if (message instanceof TriggerTransmissionTimeoutMessage) {
+			handleTriggerTransmissionTimeoutMessage((TriggerTransmissionTimeoutMessage) message);
 		} else {
 			System.out.println("Comm module received message of unhandled type. Ignoring.");
 		}
@@ -63,6 +66,10 @@ public class CommModule extends Module {
 			System.out.println("Comm module interrupted. Shutting down.");
 			System.exit(1);
 		}
+	}
+
+	private void handleTriggerTransmissionTimeoutMessage(TriggerTransmissionTimeoutMessage message) {
+		receiver.timeoutTransmission(message.transmissionId);
 	}
 
 	private void initializeKryo() {
