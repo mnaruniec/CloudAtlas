@@ -29,7 +29,7 @@ public class TaskModule extends Module {
 	@Override
 	public void init() {
 		setRefreshTimeout();
-		setPurgeTimeout();
+//		setPurgeTimeout(); TODO
 	}
 
 	@Override

@@ -5,7 +5,7 @@ public class RmiUninstallQueryResponse extends RmiResponse {
 		super(dest, src, requestId);
 	}
 
-	public RmiUninstallQueryResponse(RmiMessage request) {
+	public RmiUninstallQueryResponse(RmiUninstallQueryRequest request) {
 		super(request);
 	}
 }

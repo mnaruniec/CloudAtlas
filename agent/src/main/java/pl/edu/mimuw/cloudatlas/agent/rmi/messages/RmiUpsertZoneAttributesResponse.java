@@ -5,7 +5,7 @@ public class RmiUpsertZoneAttributesResponse extends RmiResponse {
 		super(dest, src, requestId);
 	}
 
-	public RmiUpsertZoneAttributesResponse(RmiMessage request) {
+	public RmiUpsertZoneAttributesResponse(RmiUpsertZoneAttributesRequest request) {
 		super(request);
 	}
 }

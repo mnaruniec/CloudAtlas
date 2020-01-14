@@ -5,7 +5,7 @@ public class RmiInstallQueryResponse extends RmiResponse {
 		super(dest, src, requestId);
 	}
 
-	public RmiInstallQueryResponse(RmiMessage request) {
+	public RmiInstallQueryResponse(RmiInstallQueryRequest request) {
 		super(request);
 	}
 }

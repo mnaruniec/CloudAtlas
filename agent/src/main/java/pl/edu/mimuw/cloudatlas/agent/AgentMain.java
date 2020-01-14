@@ -34,7 +34,7 @@ public class AgentMain {
 			modules = new Module[]{
 					new TimerModule(bus),
 					new RmiModule(bus),
-					new DataModule(bus, localPathName, localAddress),
+					new DataModule(bus, localPathName, localAddress, "./config/keys/public_key.der"),
 					new CommModule(bus),
 					new GossipModule(bus, localPathName),
 					new TaskModule(bus),

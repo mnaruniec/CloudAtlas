@@ -20,10 +20,12 @@ import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetStoredZonesResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetZoneAttributesRequest;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetZoneAttributesResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiInstallQueryRequest;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiInstallQueryResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiMessage;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiSetFallbackContactsMessage;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUninstallQueryRequest;
+import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUninstallQueryResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesRequest;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiUpsertZoneAttributesResponse;
 import pl.edu.mimuw.cloudatlas.agent.task.messages.PurgeOldZonesMessage;
@@ -44,11 +46,18 @@ import pl.edu.mimuw.cloudatlas.model.ValueSet;
 import pl.edu.mimuw.cloudatlas.model.ValueString;
 import pl.edu.mimuw.cloudatlas.model.ValueTime;
 import pl.edu.mimuw.cloudatlas.model.ZMI;
+import pl.edu.mimuw.cloudatlas.signing.KeyReader;
+import pl.edu.mimuw.cloudatlas.signing.SignatureVerifier;
 import pl.edu.mimuw.cloudatlas.signing.outputs.SignedObject;
 import pl.edu.mimuw.cloudatlas.signing.outputs.payloads.InstallationPayload;
 
+import javax.crypto.NoSuchPaddingException;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
@@ -61,14 +70,19 @@ import java.util.Set;
 public class DataModule extends Module {
 	private DataModel model = new DataModel();
 
+	private SignatureVerifier signatureVerifier;
+
 	private PathName localPathName;
 	private InetAddress localAddress;
 
-	public DataModule(Bus bus, PathName localPathName, InetAddress localAddress) {
+	public DataModule(Bus bus, PathName localPathName, InetAddress localAddress, String publicKeyPath)
+			throws InvalidKeySpecException, NoSuchAlgorithmException,
+			IOException, InvalidKeyException, NoSuchPaddingException {
 		super(bus);
 		// TODO - config
 		this.localPathName = localPathName;
 		this.localAddress = localAddress;
+		this.signatureVerifier = new SignatureVerifier(KeyReader.readPublic(publicKeyPath));
 	}
 
 	@Override
@@ -435,11 +449,40 @@ public class DataModule extends Module {
 	}
 
 	private void handleRmiInstallQueryRequest(RmiInstallQueryRequest request) {
-		// TODO
+		RmiResponse response;
+		try {
+			verifyAndUpdateQuery(request.signedInstallation);
+			response = new RmiInstallQueryResponse(request);
+		} catch (RuntimeException e) {
+			response = new RmiResponse(request, e);
+			System.out.println("Exception when installing query. Ignoring.");
+			e.printStackTrace();
+		}
+
+		bus.sendMessage(response);
 	}
 
 	private void handleRmiUninstallQueryRequest(RmiUninstallQueryRequest request) {
-		// TODO
+		RmiResponse response;
+		try {
+			verifyAndUpdateQuery(request.signedUninstallation);
+			response = new RmiUninstallQueryResponse(request);
+		} catch (RuntimeException e) {
+			response = new RmiResponse(request, e);
+			System.out.println("Exception when uninstalling query. Ignoring.");
+			e.printStackTrace();
+		}
+
+		bus.sendMessage(response);
+	}
+
+	private void verifyAndUpdateQuery(SignedObject signedObject) {
+		signatureVerifier.verify(signedObject);
+		SignedObject old = model.queryMap.get(signedObject.getPayload().getName());
+		if (old != null && old.getTimestamp() > signedObject.getTimestamp()) {
+			throw new IllegalArgumentException("Agent already has a fresher status of this query.");
+		}
+		model.queryMap.put(signedObject.getPayload().getName(), signedObject);
 	}
 
 	private void handleRmiGetFallbackContactsRequest(RmiGetFallbackContactsRequest request) {
@@ -479,6 +522,14 @@ public class DataModule extends Module {
 			}
 
 			boolean changed = false;
+			for (Map.Entry<Attribute, Value> entry: zmi.getAttributes().clone()) {
+				Attribute attr = entry.getKey();
+				if (!ProtectedAttributesHelper.isProtected(attr)) {
+					zmi.getAttributes().remove(attr);
+					changed = true;
+				}
+			}
+
 			for (Map.Entry<Attribute, Program> entry : queries.entrySet()) {
 				try {
 					execQuery(entry.getValue(), zmi);
