@@ -13,7 +13,14 @@ public class ZoneListController {
 
 	@GetMapping("/zone_list")
 	public String zone(Model model) {
-		model.addAttribute("zoneList", agentService.getStoredZonesList());
+		String message = "";
+		try {
+			model.addAttribute("zoneList", agentService.getStoredZonesList());
+		} catch (Exception e) {
+			e.printStackTrace();
+			message = "ERROR:" + e.getMessage();
+		}
+		model.addAttribute("message", message);
 		return "zone_list";
 	}
 }

@@ -28,7 +28,9 @@ application {
     mainClassName = 'pl.edu.mimuw.cloudatlas.agent.AgentMain'
     applicationDefaultJvmArgs = [
             '-Djava.security.policy=./config/server.policy',
-            '-Djava.rmi.server.codebase=file://' + buildDir + '/install/agent/lib/agent.jar',
+            '-Djava.rmi.server.codebase=' +
+                    'file://' + buildDir + '/install/agent/lib/agent.jar' +
+                    ' file://' + buildDir + '/install/agent/lib/common.jar',
             '-Djava.rmi.server.hostname=localhost'
     ]
 }

@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class PlotService {
@@ -26,10 +27,9 @@ public class PlotService {
 	public static final int COLLECTION_INTERVAL_MS = 5000;
 	public static final DateFormat TIME_FORMAT = new SimpleDateFormat("MM/dd HH:mm:ss");
 
-
 	private static class TimedValue {
-		private String time;
-		private Value value;
+		private final String time;
+		private final Value value;
 
 		public TimedValue(String time, Value value) {
 			this.time = time;
@@ -41,53 +41,55 @@ public class PlotService {
 	private ObjectMapper mapper;
 
 	// zone -> attr -> List<TimedValue>
-	private Map<String, Map<String, List<TimedValue>>> plotMap = new HashMap<>();
+	private final Map<String, Map<String, List<TimedValue>>> plotMap = new HashMap<>();
 
 	public PlotService(@Autowired AgentService agentService, @Autowired ObjectMapper mapper) {
 		this.agentService = agentService;
 		this.mapper = mapper;
-
-		for (String zone: agentService.getStoredZonesList()) {
-			plotMap.put(zone, new HashMap<>());
-		}
 	}
 
 	public JsonNode getPlotData(String zone, String attribute) {
 		ObjectNode root = mapper.createObjectNode();
-		if (plotMap.get(zone) == null) {
-			root.put("error", "Zone not found.");
-			return root;
-		}
-		if (plotMap.get(zone).get(attribute) == null) {
-			root.put("error", "Attribute not found for this zone.");
-			return root;
-		}
-		List<TimedValue> timeList = plotMap.get(zone).get(attribute);
-
 		ArrayNode data = mapper.createArrayNode();
 		ArrayNode data_type = mapper.createArrayNode();
 		ArrayNode label = mapper.createArrayNode();
 
-		for (TimedValue timedValue: timeList) {
-			label.add(timedValue.time);
-			if (timedValue.value == null) {
-				data.add((JsonNode)null);
-				data_type.add((JsonNode)null);
-			} else {
-				switch (timedValue.value.getType().getPrimaryType()) {
-					case DOUBLE:
-						data.add(((ValueDouble)timedValue.value).getValue());
-						break;
-					case DURATION:
-						data.add(((ValueDuration)timedValue.value).getValue());
-						break;
-					case INT:
-						data.add(((ValueInt)timedValue.value).getValue());
-						break;
-					default:
-						data.add((JsonNode)null);
+		Map<String, List<TimedValue>> attrMap;
+		synchronized (plotMap) {
+			attrMap = plotMap.get(zone);
+			if (attrMap == null) {
+				root.put("error", "Zone not found.");
+				return root;
+			}
+		}
+		synchronized (attrMap) {
+			List<TimedValue> timeList = attrMap.get(attribute);
+			if (timeList == null) {
+				root.put("error", "Attribute not found for this zone.");
+				return root;
+			}
+
+			for (TimedValue timedValue : timeList) {
+				label.add(timedValue.time);
+				if (timedValue.value == null) {
+					data.add((JsonNode) null);
+					data_type.add((JsonNode) null);
+				} else {
+					switch (timedValue.value.getType().getPrimaryType()) {
+						case DOUBLE:
+							data.add(((ValueDouble) timedValue.value).getValue());
+							break;
+						case DURATION:
+							data.add(((ValueDuration) timedValue.value).getValue());
+							break;
+						case INT:
+							data.add(((ValueInt) timedValue.value).getValue());
+							break;
+						default:
+							data.add((JsonNode) null);
+					}
+					data_type.add(timedValue.value.getType().toString());
 				}
-				data_type.add(timedValue.value.getType().toString());
 			}
 		}
 
@@ -99,7 +101,33 @@ public class PlotService {
 
 	@Scheduled(fixedDelay = COLLECTION_INTERVAL_MS, initialDelay = 1000)
 	public void update() {
-		List<String> zones = agentService.getStoredZonesList();
+		Set<String> zones;
+		try {
+			zones = agentService.getStoredZones();
+		} catch (Exception e) {
+			System.out.println("EXCEPTION when fetching zones list:" + e.getMessage() + ". Skipping.");
+			return;
+		}
+
+		// local snapshot of this.plotMap
+		Map<String, Map<String, List<TimedValue>>> plotMap;
+
+		synchronized (this.plotMap) {
+			for (String zone: new LinkedList<>(this.plotMap.keySet())) {
+				if (!zones.contains(zone)) {
+					this.plotMap.remove(zone);
+				}
+			}
+			for (String zone: zones) {
+				if (!this.plotMap.containsKey(zone)) {
+					this.plotMap.put(zone, new HashMap<>());
+				}
+			}
+
+			// take snapshot of top level
+			plotMap = (Map) ((HashMap) this.plotMap).clone();
+		}
+		// don't use this.plotMap past this point
 
 		for (String zone: zones) {
 			Map<String, List<TimedValue>> attrMap = plotMap.get(zone);
@@ -137,6 +165,12 @@ public class PlotService {
 					}
 				}
 			}
+		}
+	}
+
+	public void reset() {
+		synchronized (plotMap) {
+			plotMap.clear();
 		}
 	}
 }
