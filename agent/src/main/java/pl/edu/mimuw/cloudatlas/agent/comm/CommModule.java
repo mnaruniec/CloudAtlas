@@ -2,6 +2,7 @@ package pl.edu.mimuw.cloudatlas.agent.comm;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.util.Pool;
+import pl.edu.mimuw.cloudatlas.agent.AgentConfig;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.OutNetworkMessage;
 import pl.edu.mimuw.cloudatlas.agent.comm.receiver.ReceiverThread;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
@@ -28,11 +29,11 @@ public class CommModule extends Module {
 	private SenderThread sender;
 	private BlockingQueue<OutNetworkMessage> senderQueue = new LinkedBlockingQueue<>();
 
-	public CommModule(Bus bus) throws SocketException {
+	public CommModule(Bus bus, AgentConfig config) throws SocketException {
 		super(bus);
 		initializeKryo();
-		this.receiver = new ReceiverThread(bus, kryoPool.obtain());
-		this.sender = new SenderThread(kryoPool.obtain(), senderQueue);
+		this.receiver = new ReceiverThread(bus, config, kryoPool.obtain());
+		this.sender = new SenderThread(config, kryoPool.obtain(), senderQueue);
 	}
 
 	@Override

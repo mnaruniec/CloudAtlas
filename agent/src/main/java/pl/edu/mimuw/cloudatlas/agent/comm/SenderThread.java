@@ -2,10 +2,12 @@ package pl.edu.mimuw.cloudatlas.agent.comm;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;
+import pl.edu.mimuw.cloudatlas.agent.AgentConfig;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.OutNetworkMessage;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.Random;
@@ -16,14 +18,16 @@ public class SenderThread implements Runnable {
 
 	public Random random = new Random();
 
+	private InetAddress localAddress;
 	private Kryo kryo;
 	private BlockingQueue<OutNetworkMessage> queue;
 	private DatagramSocket socket;
 
-	public SenderThread(Kryo kryo, BlockingQueue<OutNetworkMessage> queue) throws SocketException {
+	public SenderThread(AgentConfig config, Kryo kryo, BlockingQueue<OutNetworkMessage> queue) throws SocketException {
+		this.localAddress = config.getIP();
 		this.kryo = kryo;
 		this.queue = queue;
-		this.socket = new DatagramSocket();
+		this.socket = createSocket();
 	}
 
 	@Override
@@ -131,7 +135,7 @@ public class SenderThread implements Runnable {
 			}
 
 			try {
-				socket = new DatagramSocket();
+				socket = createSocket();
 				break;
 			} catch (Exception e) {
 				System.out.println("Exception when creating new sender socket. Trying again.");
@@ -145,5 +149,9 @@ public class SenderThread implements Runnable {
 			}
 		} while (socket == null || socket.isClosed() || socket.getLocalPort() == CommModule.RECEIVER_PORT);
 		// TODO - consider using timer
+	}
+
+	private DatagramSocket createSocket() throws SocketException {
+		return new DatagramSocket(0, localAddress);
 	}
 }
