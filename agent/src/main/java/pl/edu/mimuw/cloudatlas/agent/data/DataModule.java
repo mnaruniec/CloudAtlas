@@ -34,6 +34,8 @@ import pl.edu.mimuw.cloudatlas.interpreter.Interpreter;
 import pl.edu.mimuw.cloudatlas.interpreter.ProtectedAttributesHelper;
 import pl.edu.mimuw.cloudatlas.interpreter.QueryResult;
 import pl.edu.mimuw.cloudatlas.interpreter.query.Absyn.Program;
+import pl.edu.mimuw.cloudatlas.interpreter.query.Yylex;
+import pl.edu.mimuw.cloudatlas.interpreter.query.parser;
 import pl.edu.mimuw.cloudatlas.model.Attribute;
 import pl.edu.mimuw.cloudatlas.model.AttributesMap;
 import pl.edu.mimuw.cloudatlas.model.PathName;
@@ -41,7 +43,6 @@ import pl.edu.mimuw.cloudatlas.model.TypePrimitive;
 import pl.edu.mimuw.cloudatlas.model.Value;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
 import pl.edu.mimuw.cloudatlas.model.ValueInt;
-import pl.edu.mimuw.cloudatlas.model.ValueQuery;
 import pl.edu.mimuw.cloudatlas.model.ValueSet;
 import pl.edu.mimuw.cloudatlas.model.ValueString;
 import pl.edu.mimuw.cloudatlas.model.ValueTime;
@@ -52,6 +53,7 @@ import pl.edu.mimuw.cloudatlas.signing.outputs.SignedObject;
 import pl.edu.mimuw.cloudatlas.signing.outputs.payloads.InstallationPayload;
 
 import javax.crypto.NoSuchPaddingException;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -68,21 +70,33 @@ import java.util.Map;
 import java.util.Set;
 
 public class DataModule extends Module {
+	public static final int CONTACTS_SAMPLE = 3;
+
+	public static final String[] INTERNAL_QUERIES = {
+			"SELECT sum(" + ZMI.CARDINALITY_ATTR + ") AS " + ZMI.CARDINALITY_ATTR,
+			"SELECT to_set(random(" + CONTACTS_SAMPLE + ", unfold(" + ZMI.CONTACTS_ATTR + "))) AS " + ZMI.CONTACTS_ATTR,
+	};
+
 	private DataModel model = new DataModel();
 
 	private SignatureVerifier signatureVerifier;
+	private List<Program> internalQueries = new LinkedList<>();
 
 	private PathName localPathName;
 	private InetAddress localAddress;
 
 	public DataModule(Bus bus, PathName localPathName, InetAddress localAddress, String publicKeyPath)
-			throws InvalidKeySpecException, NoSuchAlgorithmException,
-			IOException, InvalidKeyException, NoSuchPaddingException {
+			throws Exception {
 		super(bus);
 		// TODO - config
 		this.localPathName = localPathName;
 		this.localAddress = localAddress;
 		this.signatureVerifier = new SignatureVerifier(KeyReader.readPublic(publicKeyPath));
+
+		for (String query: INTERNAL_QUERIES) {
+			Yylex lex = new Yylex(new ByteArrayInputStream(query.getBytes()));
+			internalQueries.add((new parser(lex)).pProgram());
+		}
 	}
 
 	@Override
@@ -296,8 +310,7 @@ public class DataModule extends Module {
 		attrMap.add(ZMI.LEVEL_ATTR, new ValueInt((long) pathName.getComponents().size()));
 		// TODO - consider better initialization
 		attrMap.add(ZMI.CARDINALITY_ATTR, new ValueInt(1L));
-		attrMap.add(ZMI.OWNER_ATTR, new ValueString(pathName.toString()));
-		refreshTimestamp(zmi);
+		refreshOwnerAndTimestamp(zmi);
 
 		// TODO - consider adding as contact to all prefixes
 		Set<Value> valueSet = new HashSet<>();
@@ -443,7 +456,7 @@ public class DataModule extends Module {
 
 		ZMI zmi = createZMIPath(pathName);
 		zmi.getAttributes().addOrChange(attributesMap);
-		refreshTimestamp(zmi);
+		refreshOwnerAndTimestamp(zmi);
 
 		bus.sendMessage(new RmiUpsertZoneAttributesResponse(request));
 	}
@@ -541,10 +554,21 @@ public class DataModule extends Module {
 					);
 				}
 			}
-			// TODO - internal queries
+
+			for (Program query: internalQueries) {
+				try {
+					execQuery(query, zmi);
+					changed = true;
+				} catch (Exception e) {
+					System.out.println(
+							"Exception when evaluating internal query in node '"
+									+ zmi.getName() + "'. Ignoring."
+					);
+				}
+			}
 
 			if (changed) {
-				refreshTimestamp(zmi);
+				refreshOwnerAndTimestamp(zmi);
 			}
 		}
 	}
@@ -558,7 +582,8 @@ public class DataModule extends Module {
 		}
 	}
 
-	private void refreshTimestamp(ZMI zmi) {
+	private void refreshOwnerAndTimestamp(ZMI zmi) {
+		zmi.getAttributes().addOrChange(ZMI.OWNER_ATTR, new ValueString(localPathName.toString()));
 		zmi.getAttributes().addOrChange(ZMI.TIMESTAMP_ATTR, new ValueTime());
 	}
 
