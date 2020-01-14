@@ -1,6 +1,6 @@
 package pl.edu.mimuw.cloudatlas.fetcher;
 
-import org.ini4j.Wini;
+import pl.edu.mimuw.cloudatlas.config.IniConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Config {
+public class Config extends IniConfig {
 	public static final String GENERAL_SECTION = "general";
 	public static final String NAME = "name";
 	public static final String DEFAULT_NAME = "/uw/violet07";
@@ -25,18 +25,8 @@ public class Config {
 	public static final String CPU_AVG_METHOD = "cpu_avg_method";
 	public static final String DEFAULT_CPU_AVG_METHOD = "arithmetic";
 
-	private Wini ini;
-
 	public Config(File file) throws IOException {
-		this.ini = new Wini(file);
-	}
-
-	public <T> T getValue(String section, String key, Class<T> type) {
-		return ini.get(section, key, type);
-	}
-	public <T> T getValue(String section, String key, Class<T> type, T def) {
-		T res = ini.get(section, key, type);
-		return res == null ? def : res;
+		super(file);
 	}
 
 	public long getCollectionIntervalMs() {

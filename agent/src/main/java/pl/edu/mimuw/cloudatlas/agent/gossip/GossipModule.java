@@ -1,5 +1,6 @@
 package pl.edu.mimuw.cloudatlas.agent.gossip;
 
+import pl.edu.mimuw.cloudatlas.agent.AgentConfig;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.InNetworkMessage;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.NetworkRequestPayload;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.NetworkResponsePayload;
@@ -29,10 +30,9 @@ public class GossipModule extends Module {
 
 	private PathName localPathName;
 
-	public GossipModule(Bus bus, PathName localPathName) {
+	public GossipModule(Bus bus, AgentConfig config) {
 		super(bus);
-		// TODO - pass as config
-		this.localPathName = localPathName;
+		this.localPathName = config.getPathname();
 	}
 
 	@Override

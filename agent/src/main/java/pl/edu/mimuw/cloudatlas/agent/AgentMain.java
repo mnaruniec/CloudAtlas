@@ -9,22 +9,24 @@ import pl.edu.mimuw.cloudatlas.agent.gossip.GossipModule;
 import pl.edu.mimuw.cloudatlas.agent.rmi.RmiModule;
 import pl.edu.mimuw.cloudatlas.agent.task.TaskModule;
 import pl.edu.mimuw.cloudatlas.agent.timer.TimerModule;
-import pl.edu.mimuw.cloudatlas.model.PathName;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class AgentMain {
-	public static void main(String[] args) throws UnknownHostException {
+	public static void main(String[] args) throws IOException {
+		if (args.length < 1) {
+			System.out.println("usage: agent <config.ini>");
+			System.exit(1);
+		}
+		AgentConfig config = new AgentConfig(new File(args[0]));
+
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
 		}
-
-		PathName localPathName = new PathName("/uw/violet07");  // TODO - config
-		InetAddress localAddress = InetAddress.getByAddress(new byte[] {127, 0, 0, 1});
 
 		Bus bus = null;
 		Module[] modules = null;
@@ -34,10 +36,10 @@ public class AgentMain {
 			modules = new Module[]{
 					new TimerModule(bus),
 					new RmiModule(bus),
-					new DataModule(bus, localPathName, localAddress, "./config/keys/public_key.der"),
+					new DataModule(bus, config),
 					new CommModule(bus),
-					new GossipModule(bus, localPathName),
-					new TaskModule(bus),
+					new GossipModule(bus, config),
+					new TaskModule(bus, config),
 			};
 
 			moduleExecutors = new ModuleExecutor[modules.length];

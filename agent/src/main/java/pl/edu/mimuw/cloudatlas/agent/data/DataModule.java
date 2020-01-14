@@ -1,5 +1,6 @@
 package pl.edu.mimuw.cloudatlas.agent.data;
 
+import pl.edu.mimuw.cloudatlas.agent.AgentConfig;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
 import pl.edu.mimuw.cloudatlas.agent.common.Constants;
 import pl.edu.mimuw.cloudatlas.agent.common.Message;
@@ -52,14 +53,9 @@ import pl.edu.mimuw.cloudatlas.signing.SignatureVerifier;
 import pl.edu.mimuw.cloudatlas.signing.outputs.SignedObject;
 import pl.edu.mimuw.cloudatlas.signing.outputs.payloads.InstallationPayload;
 
-import javax.crypto.NoSuchPaddingException;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
@@ -85,13 +81,12 @@ public class DataModule extends Module {
 	private PathName localPathName;
 	private InetAddress localAddress;
 
-	public DataModule(Bus bus, PathName localPathName, InetAddress localAddress, String publicKeyPath)
+	public DataModule(Bus bus, AgentConfig config)
 			throws Exception {
 		super(bus);
-		// TODO - config
-		this.localPathName = localPathName;
-		this.localAddress = localAddress;
-		this.signatureVerifier = new SignatureVerifier(KeyReader.readPublic(publicKeyPath));
+		this.localPathName = config.getPathname();
+		this.localAddress = config.getIP();
+		this.signatureVerifier = new SignatureVerifier(KeyReader.readPublic(config.getPublicKeyPath()));
 
 		for (String query: INTERNAL_QUERIES) {
 			Yylex lex = new Yylex(new ByteArrayInputStream(query.getBytes()));

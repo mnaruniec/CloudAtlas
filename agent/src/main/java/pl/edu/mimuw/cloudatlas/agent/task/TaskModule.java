@@ -1,5 +1,6 @@
 package pl.edu.mimuw.cloudatlas.agent.task;
 
+import pl.edu.mimuw.cloudatlas.agent.AgentConfig;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
 import pl.edu.mimuw.cloudatlas.agent.common.Constants;
 import pl.edu.mimuw.cloudatlas.agent.common.Message;
@@ -13,12 +14,13 @@ import pl.edu.mimuw.cloudatlas.agent.timer.SetTimeoutMessage;
 import java.util.Date;
 
 public class TaskModule extends Module {
-	// TODO - config
-	public static final long REFRESH_TIMEOUT_MS = 5000;
-	public static final long PURGE_TIMEOUT_MS = 60000;
+	private long refreshIntervalMs;
+	private long purgeIntervalMs;
 
-	public TaskModule(Bus bus) {
+	public TaskModule(Bus bus, AgentConfig config) {
 		super(bus);
+		this.refreshIntervalMs = config.getZmiRefreshIntervalMs();
+		this.purgeIntervalMs = config.getZmiPurgeIntervalMs();
 	}
 
 	@Override
@@ -53,7 +55,7 @@ public class TaskModule extends Module {
 	}
 
 	private void handleTriggerPurgeOldZonesMessage(TriggerPurgeOldZonesMessage message) {
-		long timestamp = new Date().getTime() - PURGE_TIMEOUT_MS;
+		long timestamp = new Date().getTime() - purgeIntervalMs;
 
 		bus.sendMessage(new PurgeOldZonesMessage(
 				Constants.DEFAULT_DATA_MODULE_NAME,
@@ -76,7 +78,7 @@ public class TaskModule extends Module {
 				Constants.DEFAULT_TIMER_MODULE_NAME,
 				getDefaultName(),
 				sendTrigger,
-				REFRESH_TIMEOUT_MS
+				refreshIntervalMs
 		));
 	}
 
@@ -92,7 +94,7 @@ public class TaskModule extends Module {
 				Constants.DEFAULT_TIMER_MODULE_NAME,
 				getDefaultName(),
 				sendTrigger,
-				PURGE_TIMEOUT_MS
+				purgeIntervalMs
 		));
 	}
 }
