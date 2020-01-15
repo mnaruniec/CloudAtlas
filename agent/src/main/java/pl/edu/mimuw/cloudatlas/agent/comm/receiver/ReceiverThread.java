@@ -10,6 +10,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -39,7 +40,8 @@ public class ReceiverThread implements Runnable {
 		while (true) {
 			try {
 				DatagramPacket datagram = receiveDatagram();
-				processDatagram(datagram);
+				long timestamp = new Date().getTime();
+				processDatagram(datagram, timestamp);
 			} catch (Exception e) {
 				System.out.println("Unexpected exception caught in communication receiver thread. Ignoring.");
 				e.printStackTrace();
@@ -52,7 +54,7 @@ public class ReceiverThread implements Runnable {
 		transmissionMap.remove(transmissionId);
 	}
 
-	private void processDatagram(DatagramPacket datagram) {
+	private void processDatagram(DatagramPacket datagram, long timestamp) {
 		if (datagram.getLength() > CommModule.MAX_DATAGRAM_SIZE) {
 			System.out.println("Receiver thread got a too long datagram. Ignoring.");
 			return;
@@ -72,11 +74,11 @@ public class ReceiverThread implements Runnable {
 				key -> new Transmission(bus, kryo, transmissionId, transmissionTimeoutMs)
 		);
 
-		insertDatagram(transmission, datagram);
+		insertDatagram(transmission, datagram, timestamp);
 	}
 
-	private void insertDatagram(Transmission transmission, DatagramPacket datagram) {
-		transmission.insertDatagram(datagram);
+	private void insertDatagram(Transmission transmission, DatagramPacket datagram, long timestamp) {
+		transmission.insertDatagram(datagram, timestamp);
 		if (transmission.isFinished()) {
 			removeTransmission(transmission);
 		}

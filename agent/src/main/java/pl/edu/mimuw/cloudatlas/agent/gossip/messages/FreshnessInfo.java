@@ -1,5 +1,7 @@
 package pl.edu.mimuw.cloudatlas.agent.gossip.messages;
 
+import pl.edu.mimuw.cloudatlas.gtp.GtpUtils;
+
 import java.util.Collections;
 import java.util.Map;
 
@@ -20,5 +22,10 @@ public final class FreshnessInfo {
 
 	public Map<String, Long> getQueryTimestamps() {
 		return Collections.unmodifiableMap(queryTimestamps);
+	}
+
+	// all query timestamps are in signer's base, no need to adjust
+	public void adjustRemoteTimestamps(long dT) {
+		zmiTimestamps.replaceAll((k, v) -> GtpUtils.adjustRemoteTimestamp(v, dT));
 	}
 }

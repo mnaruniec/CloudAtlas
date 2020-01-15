@@ -10,6 +10,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
+import java.util.Date;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 
@@ -71,6 +72,7 @@ public class SenderThread implements Runnable {
 
 			if (i == 0) {
 				wrapper.putInt(numDatagrams);
+				wrapper.putLong(0L);  // placeholder for timestamp
 				headerSize = CommModule.FIRST_HEADER_SIZE;
 			} else {
 				headerSize = CommModule.MIN_HEADER_SIZE;
@@ -86,7 +88,7 @@ public class SenderThread implements Runnable {
 					CommModule.RECEIVER_PORT
 			);
 
-			sendDatagram(datagram);
+			sendDatagram(datagram, i == 0);
 
 			left -= bodyLen;
 			offset += bodyLen;
@@ -97,9 +99,12 @@ public class SenderThread implements Runnable {
 		}
 	}
 
-	private void sendDatagram(DatagramPacket datagram) {
+	private void sendDatagram(DatagramPacket datagram, boolean isFirst) {
 		while (true) {
 			try {
+				if (isFirst) {
+					refreshTimestamp(datagram);
+				}
 				socket.send(datagram);
 				return;
 			} catch (Exception e) {
@@ -108,6 +113,11 @@ public class SenderThread implements Runnable {
 				restoreSocket();
 			}
 		}
+	}
+
+	private void refreshTimestamp(DatagramPacket datagram) {
+		ByteBuffer buffer = ByteBuffer.wrap(datagram.getData());
+		buffer.putLong(CommModule.TIMESTAMP_OFFSET, new Date().getTime());
 	}
 
 	private int getNextTransmissionId() {

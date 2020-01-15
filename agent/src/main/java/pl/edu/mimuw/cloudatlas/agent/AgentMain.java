@@ -6,13 +6,11 @@ import pl.edu.mimuw.cloudatlas.agent.common.Module;
 import pl.edu.mimuw.cloudatlas.agent.common.ModuleExecutor;
 import pl.edu.mimuw.cloudatlas.agent.data.DataModule;
 import pl.edu.mimuw.cloudatlas.agent.gossip.GossipModule;
-import pl.edu.mimuw.cloudatlas.agent.gossip.messages.InitiateGossipMessage;
 import pl.edu.mimuw.cloudatlas.agent.rmi.RmiModule;
 import pl.edu.mimuw.cloudatlas.agent.task.TaskModule;
 import pl.edu.mimuw.cloudatlas.agent.timer.TimerModule;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;

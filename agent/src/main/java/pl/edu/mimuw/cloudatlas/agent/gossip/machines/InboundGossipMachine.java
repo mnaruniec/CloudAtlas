@@ -19,9 +19,16 @@ import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipDataRequest;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipDataResponse;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GossipData;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.UpdateWithGossipDataMessage;
+import pl.edu.mimuw.cloudatlas.gtp.GtpUtils;
+import pl.edu.mimuw.cloudatlas.model.AttributesMap;
 import pl.edu.mimuw.cloudatlas.model.PathName;
+import pl.edu.mimuw.cloudatlas.model.ValueTime;
+import pl.edu.mimuw.cloudatlas.model.ZMI;
 
 import java.net.InetAddress;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class InboundGossipMachine implements GossipStateMachine {
 	private enum State {
@@ -38,6 +45,10 @@ public class InboundGossipMachine implements GossipStateMachine {
 	private FreshnessInfo remoteFreshnessInfo;
 	private GossipData localGossipData;
 	private GossipData remoteGossipData;
+	private long t3b, t3a, t2a, t2b, t1b, t1a;  // GTP timestamps
+	private long rtd;
+	// says how much remote clock is ahead of local clock
+	private long dT;
 
 	public final long machineId;
 	private Bus bus;
@@ -113,6 +124,9 @@ public class InboundGossipMachine implements GossipStateMachine {
 			System.out.println("Received null as remote freshness info. Finishing gossip.");
 			finish();
 		} else {
+			t1b = message.receiveTimestamp;
+			t1a = message.sendTimestamp;
+
 			state = State.ExpectLocalFreshnessInfo;
 			bus.sendMessage(new GetFreshnessInfoRequest(
 					Constants.DEFAULT_DATA_MODULE_NAME,
@@ -143,7 +157,11 @@ public class InboundGossipMachine implements GossipStateMachine {
 
 			state = State.ExpectRemoteData;
 			bus.sendMessage(createNetworkMessage(
-					new FreshnessInfoResponsePayload(localFreshnessInfo)
+					new FreshnessInfoResponsePayload(
+							localFreshnessInfo,
+							t1b,
+							t1a
+					)
 			));
 		}
 	}
@@ -161,6 +179,16 @@ public class InboundGossipMachine implements GossipStateMachine {
 			System.out.println("Received null as remote gossip data. Finishing gossip.");
 			finish();
 		} else {
+			t3b = message.receiveTimestamp;
+			t3a = message.sendTimestamp;
+			t2a = ((DataRequestPayload) message.payload).getT2a();
+			t2b = ((DataRequestPayload) message.payload).getT2b();
+			rtd = GtpUtils.getRoundTripDelay(t3b, t3a, t2a, t2b);
+			dT = GtpUtils.getTimeOffset(t3b, t3a, rtd);
+			System.out.println("In dT: " + dT);
+
+			remoteFreshnessInfo.adjustRemoteTimestamps(dT);
+
 			state = State.ExpectLocalData;
 			bus.sendMessage(new GetGossipDataRequest(
 					Constants.DEFAULT_DATA_MODULE_NAME,
@@ -177,6 +205,15 @@ public class InboundGossipMachine implements GossipStateMachine {
 
 		if (state != State.ExpectLocalData) {
 			System.out.println("Received local data in state: " + state + ". Ignoring.");
+			return;
+		}
+
+		try {
+			remoteGossipData.adjustRemoteTimestamps(dT);
+		} catch (Exception e) {
+			System.out.println("Failed to adjust remote ZMI timestamps. Finishing gossip.");
+			e.printStackTrace();
+			finish();
 			return;
 		}
 
@@ -203,7 +240,6 @@ public class InboundGossipMachine implements GossipStateMachine {
 			));
 		}
 	}
-
 
 	private OutNetworkMessage createNetworkMessage(Payload payload) {
 		return new OutNetworkMessage(

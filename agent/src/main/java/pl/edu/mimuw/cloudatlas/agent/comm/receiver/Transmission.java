@@ -21,6 +21,8 @@ public class Transmission {
 	private Bus bus;
 	private Kryo kryo;
 	private int numDatagrams = 0;
+	private long sendTimestamp = -1;
+	private long receiveTimestamp = -1;
 	private boolean finished = false;
 
 	private Map<Integer, DatagramPacket> datagramMap = new HashMap<>();
@@ -32,7 +34,7 @@ public class Transmission {
 		setTransmissionTimeout(timeout);
 	}
 
-	public void insertDatagram(DatagramPacket datagram) {
+	public void insertDatagram(DatagramPacket datagram, long receiveTimestamp) {
 		try {
 			ByteBuffer byteBuffer = ByteBuffer.wrap(
 					datagram.getData(),
@@ -51,6 +53,12 @@ public class Transmission {
 					finishWithError("Transmission received first packet with non-positive datagrams number value.");
 					return;
 				}
+				this.sendTimestamp = byteBuffer.getLong();
+				if (sendTimestamp <= 0) {
+					finishWithError("Transmission received first packet with non-positive send timestamp.");
+					return;
+				}
+				this.receiveTimestamp = receiveTimestamp;
 			} else if (sequenceNum < 0) {
 				finishWithError("Transmission received packet with negative sequence number.");
 				return;
@@ -124,7 +132,9 @@ public class Transmission {
 					Constants.DEFAULT_GOSSIP_MODULE_NAME,
 					Constants.DEFAULT_COMM_MODULE_NAME,
 					transmissionId.address,
-					payload
+					payload,
+					receiveTimestamp,
+					sendTimestamp
 			));
 		} finally {
 			finished = true;

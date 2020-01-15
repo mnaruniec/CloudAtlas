@@ -22,6 +22,7 @@ import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GossipData;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.InitiateGossipMessage;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.UpdateWithGossipDataMessage;
 import pl.edu.mimuw.cloudatlas.agent.timer.SetTimeoutMessage;
+import pl.edu.mimuw.cloudatlas.gtp.GtpUtils;
 import pl.edu.mimuw.cloudatlas.model.PathName;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
 
@@ -41,6 +42,10 @@ public class OutboundGossipMachine implements GossipStateMachine {
 	private FreshnessInfo remoteFreshnessInfo;
 	private GossipData localGossipData;
 	private GossipData remoteGossipData;
+	private long t2a, t2b, t1b, t1a;  // GTP timestamps
+	private long rtd;
+	// says how much remote clock is ahead of local clock
+	private long dT;
 
 	public final long machineId;
 	public final long gossipIntervalMs;
@@ -158,6 +163,16 @@ public class OutboundGossipMachine implements GossipStateMachine {
 			System.out.println("OutLocal query freshness: " + localFreshnessInfo.getQueryTimestamps());
 			System.out.println("OutRemote query freshness: " + remoteFreshnessInfo.getQueryTimestamps());
 
+			t2a = message.receiveTimestamp;
+			t2b = message.sendTimestamp;
+			t1b = ((FreshnessInfoResponsePayload) message.payload).getT1b();
+			t1a = ((FreshnessInfoResponsePayload) message.payload).getT1a();
+			rtd = GtpUtils.getRoundTripDelay(t2a, t2b, t1b, t1a);
+			dT = GtpUtils.getTimeOffset(t2a, t2b, rtd);
+			System.out.println("Out dT: " + dT);
+
+			remoteFreshnessInfo.adjustRemoteTimestamps(dT);
+
 			state = State.ExpectLocalData;
 			bus.sendMessage(new GetGossipDataRequest(
 					Constants.DEFAULT_DATA_MODULE_NAME,
@@ -183,7 +198,11 @@ public class OutboundGossipMachine implements GossipStateMachine {
 		} else {
 			state = State.ExpectRemoteData;
 			bus.sendMessage(createNetworkMessage(
-					new DataRequestPayload(localGossipData)
+					new DataRequestPayload(
+							localGossipData,
+							t2a,
+							t2b
+					)
 			));
 		}
 	}
@@ -205,7 +224,17 @@ public class OutboundGossipMachine implements GossipStateMachine {
 			System.out.println("OutLocal query data: " + localGossipData.getQueryList());
 			System.out.println("OutRemote query data: " + remoteGossipData.getQueryList());
 
+			try {
+				remoteGossipData.adjustRemoteTimestamps(dT);
+			} catch (Exception e) {
+				System.out.println("Failed to adjust remote ZMI timestamps. Finishing gossip.");
+				e.printStackTrace();
+				finish();
+				return;
+			}
+
 			finish();
+
 			bus.sendMessage(new UpdateWithGossipDataMessage(
 					Constants.DEFAULT_DATA_MODULE_NAME,
 					Constants.DEFAULT_GOSSIP_MODULE_NAME,

@@ -20,8 +20,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class CommModule extends Module {
 	public static final int RECEIVER_PORT = 31337;
 	public static final int MAX_DATAGRAM_SIZE = 512;
-	public static final int MIN_HEADER_SIZE = 8;
-	public static final int FIRST_HEADER_ADDITION = 4;
+	public static final int MIN_HEADER_SIZE = 8; // 4B token, 4B seq number
+	public static final int FIRST_HEADER_ADDITION = 12; // 4B datagrams num, 8B send timestamp
+	public static final int TIMESTAMP_OFFSET = MIN_HEADER_SIZE + 4;
 	public static final int FIRST_HEADER_SIZE = MIN_HEADER_SIZE + FIRST_HEADER_ADDITION;
 
 	private Pool<Kryo> kryoPool;
