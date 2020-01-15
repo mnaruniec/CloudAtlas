@@ -19,7 +19,9 @@ import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipDataRequest;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipDataResponse;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipTargetResponse;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GossipData;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.InitiateGossipMessage;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.UpdateWithGossipDataMessage;
+import pl.edu.mimuw.cloudatlas.agent.timer.SetTimeoutMessage;
 import pl.edu.mimuw.cloudatlas.model.PathName;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
 
@@ -41,13 +43,15 @@ public class OutboundGossipMachine implements GossipStateMachine {
 	private GossipData remoteGossipData;
 
 	public final long machineId;
+	public final long gossipIntervalMs;
 	public final PathName localPathName;
 	private Bus bus;
 
-	public OutboundGossipMachine(Bus bus, PathName localPathName, long machineId) {
+	public OutboundGossipMachine(Bus bus, PathName localPathName, long machineId, long gossipIntervalMs) {
 		this.bus = bus;
 		this.localPathName = localPathName;
 		this.machineId = machineId;
+		this.gossipIntervalMs = gossipIntervalMs;
 	}
 
 	@Override
@@ -222,7 +226,23 @@ public class OutboundGossipMachine implements GossipStateMachine {
 	private void finish() {
 		if (state != State.Finished) {
 			state = State.Finished;
-			// TODO - reschedule gossip
+			rescheduleGossip();
 		}
+	}
+
+	private void rescheduleGossip() {
+		Runnable callback = () -> {
+			bus.sendMessage(new InitiateGossipMessage(
+					Constants.DEFAULT_GOSSIP_MODULE_NAME,
+					Constants.DEFAULT_TIMER_MODULE_NAME
+			));
+		};
+
+		bus.sendMessage(new SetTimeoutMessage(
+				Constants.DEFAULT_TIMER_MODULE_NAME,
+				Constants.DEFAULT_GOSSIP_MODULE_NAME,
+				callback,
+				gossipIntervalMs
+		));
 	}
 }

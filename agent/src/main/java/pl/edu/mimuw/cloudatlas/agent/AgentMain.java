@@ -66,8 +66,6 @@ public class AgentMain {
 		}
 		System.out.println("Executors started.");
 
-		Thread.sleep(30000);
-		bus.sendMessage(new InitiateGossipMessage("gossip", "main"));
 //		bus.sendMessage(new OutNetworkMessage("comm", "main", InetAddress.getByName("127.0.0.1"),
 //				new Payload() {}
 //				));

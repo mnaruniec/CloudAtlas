@@ -15,6 +15,7 @@ import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipTargetRequest;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GossipMachineIdMessage;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.InitiateGossipMessage;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.OutboundGossipMachineMessage;
+import pl.edu.mimuw.cloudatlas.agent.timer.SetTimeoutMessage;
 import pl.edu.mimuw.cloudatlas.model.PathName;
 
 import java.net.InetAddress;
@@ -29,15 +30,34 @@ public class GossipModule extends Module {
 	private Map<Long, GossipStateMachine> machineIdMap = new HashMap<>();
 
 	private PathName localPathName;
+	private long gossipIntervalMs;
 
 	public GossipModule(Bus bus, AgentConfig config) {
 		super(bus);
 		this.localPathName = config.getPathname();
+		this.gossipIntervalMs = config.getGossipIntervalMs();
 	}
 
 	@Override
 	public String getDefaultName() {
 		return Constants.DEFAULT_GOSSIP_MODULE_NAME;
+	}
+
+	@Override
+	public void init() {
+		Runnable callback = () -> {
+			bus.sendMessage(new InitiateGossipMessage(
+					Constants.DEFAULT_GOSSIP_MODULE_NAME,
+					Constants.DEFAULT_TIMER_MODULE_NAME
+			));
+		};
+
+		bus.sendMessage(new SetTimeoutMessage(
+				Constants.DEFAULT_TIMER_MODULE_NAME,
+				Constants.DEFAULT_GOSSIP_MODULE_NAME,
+				callback,
+				gossipIntervalMs
+		));
 	}
 
 	@Override
@@ -95,7 +115,7 @@ public class GossipModule extends Module {
 				return;
 			}
 		}
-		outboundMachine = new OutboundGossipMachine(bus, localPathName, getNextMachineId());
+		outboundMachine = new OutboundGossipMachine(bus, localPathName, getNextMachineId(), gossipIntervalMs);
 		machineIdMap.put(outboundMachine.machineId, outboundMachine);
 
 		bus.sendMessage(new GetGossipTargetRequest(
