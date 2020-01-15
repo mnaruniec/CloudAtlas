@@ -30,7 +30,7 @@ public class ZoneDataController {
 		String error = "";
 		Map<String, Value> valueMap = new HashMap<>();
 		try {
-			valueMap = agentService.getZoneAttributes(zone, false);
+			valueMap = agentService.getZoneAttributes(zone);
 		} catch (Exception e) {
 			error = e.getMessage();
 		}

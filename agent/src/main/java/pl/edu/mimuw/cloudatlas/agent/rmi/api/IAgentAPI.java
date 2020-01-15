@@ -37,7 +37,7 @@ import java.util.Set;
 public interface IAgentAPI extends Remote {
 	Set<String> getStoredZones() throws RemoteException;
 
-	Map<String, Value> getZoneAttributes(String zone, boolean excludeQueries)
+	Map<String, Value> getZoneAttributes(String zone)
 			throws RemoteException;
 
 	void upsertZoneAttributes(String zone, Map<String, Value> attributes)

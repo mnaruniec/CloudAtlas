@@ -74,9 +74,9 @@ public class AgentService implements IAgentAPI {
 	}
 
 	@Override
-	public Map<String, Value> getZoneAttributes(String zone, boolean excludeQueries)
+	public Map<String, Value> getZoneAttributes(String zone)
 			throws RemoteException {
-		return fetchAgentAPI().getZoneAttributes(zone, excludeQueries);
+		return fetchAgentAPI().getZoneAttributes(zone);
 	}
 
 	@Override

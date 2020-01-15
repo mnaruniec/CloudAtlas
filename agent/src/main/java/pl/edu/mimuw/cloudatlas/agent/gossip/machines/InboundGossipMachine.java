@@ -135,7 +135,6 @@ public class InboundGossipMachine implements GossipStateMachine {
 			System.out.println("Received null as local freshness info. Finishing gossip.");
 			finish();
 		} else {
-			// TODO - consider resending packets
 			System.out.println("InLocal ZMI freshness: " + localFreshnessInfo.getZmiTimestamps());
 			System.out.println("InRemote ZMI freshness: " + remoteFreshnessInfo.getZmiTimestamps());
 

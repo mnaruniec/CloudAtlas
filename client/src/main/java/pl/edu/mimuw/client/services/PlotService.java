@@ -135,7 +135,7 @@ public class PlotService {
 			String now = TIME_FORMAT.format(new Date());
 			Map<String, Value> receivedMap;
 			try {
-				receivedMap = agentService.getZoneAttributes(zone, true);
+				receivedMap = agentService.getZoneAttributes(zone);
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: " + e.getMessage());
 				e.printStackTrace();

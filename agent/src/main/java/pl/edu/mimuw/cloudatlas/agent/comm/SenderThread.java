@@ -148,7 +148,6 @@ public class SenderThread implements Runnable {
 				}
 			}
 		} while (socket == null || socket.isClosed() || socket.getLocalPort() == CommModule.RECEIVER_PORT);
-		// TODO - consider using timer
 	}
 
 	private DatagramSocket createSocket() throws SocketException {

@@ -242,7 +242,6 @@ public class DataModule extends Module {
 		for (ZMI son: zmi.getSons()) {
 			String sonName = son.getName();
 			path.addLast(sonName);
-			// TODO - consider going back to omitting target zone
 			if (targetPath.get(depth).equals(sonName) && path.size() < targetPath.size()) {
 				getRelevantZMIs(son, zmiMap, path, targetPath);
 			} else {
@@ -370,11 +369,9 @@ public class DataModule extends Module {
 		AttributesMap attrMap = zmi.getAttributes();
 		attrMap.add(ZMI.NAME_ATTR, new ValueString(pathName.getSingletonName()));
 		attrMap.add(ZMI.LEVEL_ATTR, new ValueInt((long) pathName.getComponents().size()));
-		// TODO - consider better initialization
 		attrMap.add(ZMI.CARDINALITY_ATTR, new ValueInt(1L));
 		refreshOwnerAndTimestamp(zmi);
 
-		// TODO - consider adding as contact to all prefixes
 		Set<Value> valueSet = new HashSet<>();
 		if (pathName.equals(localPathName)) {
 			valueSet.add(new ValueContact(

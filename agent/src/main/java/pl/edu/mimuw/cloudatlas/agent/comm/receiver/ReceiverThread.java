@@ -121,7 +121,6 @@ public class ReceiverThread implements Runnable {
 				}
 			}
 		}
-		// TODO - consider using timer
 	}
 
 	private DatagramSocket createSocket() throws SocketException {

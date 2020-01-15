@@ -56,8 +56,7 @@ public class AgentAPI implements IAgentAPI {
 	}
 
 	@Override
-	public Map<String, Value> getZoneAttributes(String zone, boolean excludeQueries) throws RemoteException {
-		// TODO - consider asserting non-null
+	public Map<String, Value> getZoneAttributes(String zone) throws RemoteException {
 		RmiMessage request = new RmiGetZoneAttributesRequest(
 				Constants.DEFAULT_DATA_MODULE_NAME,
 				Constants.DEFAULT_RMI_MODULE_NAME,
@@ -69,8 +68,6 @@ public class AgentAPI implements IAgentAPI {
 
 	@Override
 	public void upsertZoneAttributes(String zone, Map<String, Value> attributes) throws RemoteException {
-		// TODO - consider asserting non-null
-		// TODO - consider omitting response
 		RmiMessage request = new RmiUpsertZoneAttributesRequest(
 				Constants.DEFAULT_DATA_MODULE_NAME,
 				Constants.DEFAULT_RMI_MODULE_NAME,
