@@ -137,14 +137,9 @@ public class DataModule extends Module {
 		FreshnessInfo freshnessInfo = null;
 
 		try {
-			Map<String, ZMI> zmiMap = getRelevantZMIs(request.pathName);
-
-			Map<String, Long> zmiTimestamps = new HashMap<>();
-			for (Map.Entry<String, ZMI> entry: zmiMap.entrySet()) {
-				zmiTimestamps.put(entry.getKey(), entry.getValue().getTimestamp());
-			}
-
-			freshnessInfo = new FreshnessInfo(zmiTimestamps);
+			Map<String, Long> zmiTimestamps = getZmiTimestamps(request.pathName);
+			Map<String, Long> queryTimestamps = getQueryTimestamps();
+			freshnessInfo = new FreshnessInfo(zmiTimestamps, queryTimestamps);
 		} catch (Exception e) {
 			System.out.println("Exception occured in data module when collecting freshness info. Returning null.");
 			e.printStackTrace();
@@ -156,26 +151,34 @@ public class DataModule extends Module {
 		));
 	}
 
+	private Map<String, Long> getZmiTimestamps(PathName target) {
+		Map<String, ZMI> zmiMap = getRelevantZMIs(target);
+
+		Map<String, Long> zmiTimestamps = new HashMap<>();
+		for (Map.Entry<String, ZMI> entry: zmiMap.entrySet()) {
+			zmiTimestamps.put(entry.getKey(), entry.getValue().getTimestamp());
+		}
+
+		return zmiTimestamps;
+	}
+
+	private Map<String, Long> getQueryTimestamps() {
+		Map<String, Long> queryTimestamps = new HashMap<>();
+
+		for (Map.Entry<Attribute, SignedObject> entry: model.queryMap.entrySet()) {
+			queryTimestamps.put(entry.getKey().getName(), entry.getValue().getTimestamp());
+		}
+
+		return queryTimestamps;
+	}
+
 	private void handleGetGossipDataRequest(GetGossipDataRequest request) {
 		GossipData gossipData = null;
 
 		try {
-			Map<String, ZMI> zmiMap = getRelevantZMIs(request.pathName);
-			Map<String, Long> zmiTimestamps = request.remoteFreshnessInfo.getZmiTimestamps();
-
-			Map<String, AttributesMap> attributes = new HashMap<>();
-			for (Map.Entry<String, ZMI> entry: zmiMap.entrySet()) {
-				String pathName = entry.getKey();
-				ZMI zmi = entry.getValue();
-				long timestamp = zmiTimestamps.get(pathName);
-
-				// TODO - remove true
-				if (timestamp < zmi.getTimestamp() || true) {
-					attributes.put(pathName, zmi.getAttributes().clone());
-				}
-			}
-
-			gossipData = new GossipData(attributes);
+			Map<String, AttributesMap> zmiMap = getZMIGossipData(request);
+			List<SignedObject> queryList = getQueryGossipData(request.remoteFreshnessInfo);
+			gossipData = new GossipData(zmiMap, queryList);
 		} catch (Exception e) {
 			System.out.println("Exception occured in data module when collecting gossip data. Returning null.");
 			e.printStackTrace();
@@ -185,6 +188,42 @@ public class DataModule extends Module {
 				request,
 				gossipData
 		));
+	}
+
+	private Map<String, AttributesMap> getZMIGossipData(GetGossipDataRequest request) {
+		Map<String, AttributesMap> attributes = new HashMap<>();
+
+		Map<String, ZMI> zmiMap = getRelevantZMIs(request.pathName);
+		Map<String, Long> zmiTimestamps = request.remoteFreshnessInfo.getZmiTimestamps();
+
+		for (Map.Entry<String, ZMI> entry: zmiMap.entrySet()) {
+			String pathName = entry.getKey();
+			ZMI zmi = entry.getValue();
+			long timestamp = zmiTimestamps.get(pathName);
+
+			// TODO - remove true
+			if (timestamp < zmi.getTimestamp() || true) {
+				attributes.put(pathName, zmi.getAttributes().clone());
+			}
+		}
+
+		return attributes;
+	}
+
+	private List<SignedObject> getQueryGossipData(FreshnessInfo remoteFreshnessInfo) {
+		List<SignedObject> queryList = new ArrayList<>();
+
+		for (Map.Entry<Attribute, SignedObject> entry: model.queryMap.entrySet()) {
+			Long remoteTimestamp = remoteFreshnessInfo.getQueryTimestamps().get(entry.getKey().getName());
+			long localTimestamp = entry.getValue().getTimestamp();
+
+			// TODO - remove true
+			if (remoteTimestamp == null || remoteTimestamp < localTimestamp || true) {
+				queryList.add(entry.getValue());
+			}
+		}
+
+		return queryList;
 	}
 
 	private Map<String, ZMI> getRelevantZMIs(PathName target) {
@@ -221,21 +260,40 @@ public class DataModule extends Module {
 		Map<PathName, AttributesMap> existingZmiMap = new HashMap<>();
 
 		try {
-			for (Map.Entry<String, AttributesMap> entry : zmiMap.entrySet()) {
-				PathName pathName = new PathName(entry.getKey());
-				verifyAttributesMap(pathName, entry.getValue());
-				if (model.zmiIndex.containsKey(pathName.getName())) {
-					existingZmiMap.put(pathName, entry.getValue());
-				} else {
-					newZmiMap.put(pathName, entry.getValue());
-				}
-			}
+			verifyZMIGossipData(zmiMap, newZmiMap, existingZmiMap);
+			verifyQueryGossipData(message.gossipData.getQueryList());
 		} catch (Exception e) {
 			System.out.println("Exception caught when verifying received gossip data. Leaving unchanged.");
 			e.printStackTrace();
 			return;
 		}
 
+		updateWithZMIGossipData(newZmiMap, existingZmiMap);
+		updateWithQueryGossipData(message.gossipData.getQueryList());
+
+		System.out.println("Updated data.");
+	}
+
+	// last two arguments are empty "return values"
+	private void verifyZMIGossipData(Map<String, AttributesMap> zmiMap,
+									 Map<PathName, AttributesMap> newZmiMap, Map<PathName, AttributesMap> existingZmiMap) {
+		for (Map.Entry<String, AttributesMap> entry : zmiMap.entrySet()) {
+			PathName pathName = new PathName(entry.getKey());
+			verifyAttributesMap(pathName, entry.getValue());
+			if (model.zmiIndex.containsKey(pathName.getName())) {
+				existingZmiMap.put(pathName, entry.getValue());
+			} else {
+				newZmiMap.put(pathName, entry.getValue());
+			}
+		}
+	}
+
+	private void verifyQueryGossipData(List<SignedObject> queryList) {
+		queryList.forEach(signatureVerifier::verify);
+	}
+
+	private void updateWithZMIGossipData(Map<PathName, AttributesMap> newZmiMap,
+										 Map<PathName, AttributesMap> existingZmiMap) {
 		for (Map.Entry<PathName, AttributesMap> entry: existingZmiMap.entrySet()) {
 			substituteZMIIfFresher(entry.getKey(), entry.getValue());
 		}
@@ -245,8 +303,17 @@ public class DataModule extends Module {
 			createZMIPath(pathName);
 			substituteZMI(pathName, entry.getValue());
 		}
+	}
 
-		System.out.println("Updated data.");
+	private void updateWithQueryGossipData(List<SignedObject> queryList) {
+		for (SignedObject query: queryList) {
+			Attribute name = query.getPayload().getName();
+			long remoteTimestamp = query.getTimestamp();
+			SignedObject localQuery = model.queryMap.get(name);
+			if (localQuery == null || localQuery.getTimestamp() < remoteTimestamp) {
+				model.queryMap.put(name, query);
+			}
+		}
 	}
 
 	private void verifyAttributesMap(PathName pathName, AttributesMap attributesMap) {

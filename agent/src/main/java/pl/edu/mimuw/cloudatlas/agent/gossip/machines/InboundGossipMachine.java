@@ -136,9 +136,12 @@ public class InboundGossipMachine implements GossipStateMachine {
 			finish();
 		} else {
 			// TODO - consider resending packets
+			System.out.println("InLocal ZMI freshness: " + localFreshnessInfo.getZmiTimestamps());
+			System.out.println("InRemote ZMI freshness: " + remoteFreshnessInfo.getZmiTimestamps());
 
-			System.out.println("InRemote freshness: " + remoteFreshnessInfo.getZmiTimestamps());
-			System.out.println("InLocal freshness: " + localFreshnessInfo.getZmiTimestamps());
+			System.out.println("InLocal query freshness: " + localFreshnessInfo.getQueryTimestamps());
+			System.out.println("InRemote query freshness: " + remoteFreshnessInfo.getQueryTimestamps());
+
 			state = State.ExpectRemoteData;
 			bus.sendMessage(createNetworkMessage(
 					new FreshnessInfoResponsePayload(localFreshnessInfo)
@@ -189,6 +192,12 @@ public class InboundGossipMachine implements GossipStateMachine {
 			System.out.println("Received null as local gossip data. Finishing gossip.");
 			finish();
 		} else {
+			System.out.println("InLocal ZMI data: " + localGossipData.getZmiMap());
+			System.out.println("InRemote ZMI data: " + remoteGossipData.getZmiMap());
+
+			System.out.println("InLocal query data: " + localGossipData.getQueryList());
+			System.out.println("InRemote query data: " + remoteGossipData.getQueryList());
+
 			finish();
 			bus.sendMessage(createNetworkMessage(
 					new DataResponsePayload(localGossipData)

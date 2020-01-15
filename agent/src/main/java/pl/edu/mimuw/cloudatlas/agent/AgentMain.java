@@ -6,6 +6,7 @@ import pl.edu.mimuw.cloudatlas.agent.common.Module;
 import pl.edu.mimuw.cloudatlas.agent.common.ModuleExecutor;
 import pl.edu.mimuw.cloudatlas.agent.data.DataModule;
 import pl.edu.mimuw.cloudatlas.agent.gossip.GossipModule;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.InitiateGossipMessage;
 import pl.edu.mimuw.cloudatlas.agent.rmi.RmiModule;
 import pl.edu.mimuw.cloudatlas.agent.task.TaskModule;
 import pl.edu.mimuw.cloudatlas.agent.timer.TimerModule;
@@ -17,7 +18,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class AgentMain {
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws Exception {
 		if (args.length < 1) {
 			System.out.println("usage: agent <config.ini>");
 			System.exit(1);
@@ -65,7 +66,8 @@ public class AgentMain {
 		}
 		System.out.println("Executors started.");
 
-//		bus.sendMessage(new InitiateGossipMessage("gossip", "main"));
+		Thread.sleep(30000);
+		bus.sendMessage(new InitiateGossipMessage("gossip", "main"));
 //		bus.sendMessage(new OutNetworkMessage("comm", "main", InetAddress.getByName("127.0.0.1"),
 //				new Payload() {}
 //				));
