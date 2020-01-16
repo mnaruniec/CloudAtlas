@@ -193,4 +193,8 @@ public final class ZMI implements Cloneable {
 	public long getTimestamp() {
 		return ((ValueTime)getAttributes().get(ZMI.TIMESTAMP_ATTR)).getValue();
 	}
+
+	public Set<Value> getContacts() {
+		return ((ValueSet)getAttributes().get(ZMI.CONTACTS_ATTR)).getValue();
+	}
 }

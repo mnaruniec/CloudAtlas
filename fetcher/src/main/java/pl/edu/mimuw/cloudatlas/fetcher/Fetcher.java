@@ -30,6 +30,7 @@ public class Fetcher {
 		try {
 			Registry registry = LocateRegistry.getRegistry();
 			api = (IAgentAPI) registry.lookup("AgentAPI");
+			api.ping();
 		} catch (Exception e) {
 			System.out.println("Could not retrieve AgentAPI object: " + e.getMessage());
 			System.exit(1);

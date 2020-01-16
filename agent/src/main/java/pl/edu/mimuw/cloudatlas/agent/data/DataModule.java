@@ -75,18 +75,22 @@ public class DataModule extends Module {
 
 	private DataModel model = new DataModel();
 
+	private GossipTargetStrategy gossipTargetStrategy;
 	private SignatureVerifier signatureVerifier;
 	private List<Program> internalQueries = new LinkedList<>();
 
 	private PathName localPathName;
 	private InetAddress localAddress;
+	private ValueContact localContact;
 
 	public DataModule(Bus bus, AgentConfig config)
 			throws Exception {
 		super(bus);
 		this.localPathName = config.getPathname();
 		this.localAddress = config.getIP();
+		this.localContact = new ValueContact(localPathName, localAddress);
 		this.signatureVerifier = new SignatureVerifier(KeyReader.readPublic(config.getPublicKeyPath()));
+		this.gossipTargetStrategy = GossipTargetStrategy.createStrategy(config.getGossipTargetStrategy());
 
 		for (String query: INTERNAL_QUERIES) {
 			Yylex lex = new Yylex(new ByteArrayInputStream(query.getBytes()));
@@ -121,7 +125,10 @@ public class DataModule extends Module {
 	}
 
 	private void handleGetGossipTargetRequest(GetGossipTargetRequest request) {
-		// TODO
+		// TODO - use actual contact
+		ValueContact target = gossipTargetStrategy.getNextTarget(gatherLevels());
+		System.out.println("Next target would be " + target);
+
 		try {
 			bus.sendMessage(new GetGossipTargetResponse(
 					request,
@@ -131,6 +138,54 @@ public class DataModule extends Module {
 			System.out.println("Weird.");
 			e.printStackTrace();
 		}
+	}
+
+	private List<List<List<ValueContact>>> gatherLevels() {
+		List<List<List<ValueContact>>> output = new ArrayList<>();
+		for (int i = 0; i < localPathName.getComponents().size() + 1; i++) {
+			output.add(new ArrayList<>());
+		}
+
+		List<ValueContact> fallbacks = getFilteredContacts(model.fallbackContacts);
+		if (!fallbacks.isEmpty()) {
+			output.get(0).add(fallbacks);
+		}
+
+		if (model.root != null) {
+			gatherLevels(model.root, 0, output);
+		}
+
+		return output;
+	}
+
+	private void gatherLevels(ZMI zmi, int depth, List<List<List<ValueContact>>> output) {
+		if (depth >= output.size()) {
+			return;
+		}
+
+		for (ZMI son: zmi.getSons()) {
+			gatherLevels(son, depth + 1, output);
+		}
+
+		// don't gather root
+		if (depth == 0) {
+			return;
+		}
+
+		List<ValueContact> contacts = getFilteredContacts(zmi.getContacts());
+		if (!contacts.isEmpty()) {
+			output.get(depth).add(contacts);
+		}
+	}
+
+	private List<ValueContact> getFilteredContacts(Set<? extends Value> inputContacts) {
+		List<ValueContact> contacts = new ArrayList<>();
+		for (Value contact: inputContacts) {
+			if (!((ValueContact)contact).getName().equals(localPathName)) {
+				contacts.add((ValueContact) contact);
+			}
+		}
+		return contacts;
 	}
 
 	private void handleGetFreshnessInfoRequest(GetFreshnessInfoRequest request) {
@@ -374,10 +429,7 @@ public class DataModule extends Module {
 
 		Set<Value> valueSet = new HashSet<>();
 		if (pathName.equals(localPathName)) {
-			valueSet.add(new ValueContact(
-					localPathName,
-					localAddress
-			));
+			valueSet.add(localContact);
 		}
 		attrMap.add(ZMI.CONTACTS_ATTR, new ValueSet(valueSet, TypePrimitive.CONTACT));
 

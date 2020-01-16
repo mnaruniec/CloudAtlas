@@ -10,6 +10,13 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 public class AgentConfig extends IniConfig {
+	public enum GossipTargetStrategy {
+		UNIFORM_ROUND_ROBIN,
+		EXP_ROUND_ROBIN,
+		UNIFORM_RANDOM,
+		EXP_RANDOM
+	}
+
 	public static final String GENERAL_SECTION = "general";
 	public static final String GOSSIP_SECTION = "gossip";
 	public static final String CRYPTO_SECTION = "crypto";
@@ -23,6 +30,9 @@ public class AgentConfig extends IniConfig {
 	// GOSSIP
 	public static final String GOSSIP_INTERVAL_MS = "gossip_interval_ms";
 	public static final long DEFAULT_GOSSIP_INTERVAL_MS = 5000L;
+
+	public static final String GOSSIP_TARGET_STRATEGY = "gossip_target_strategy";
+	public static final String DEFAULT_GOSSIP_TARGET_STRATEGY = "uniform_random";
 
 	// CRYPTO
 	public static final String PUBLIC_KEY_PATH = "public_key_path";
@@ -64,6 +74,11 @@ public class AgentConfig extends IniConfig {
 
 	public Long getGossipIntervalMs() {
 		return getValue(GOSSIP_SECTION, GOSSIP_INTERVAL_MS, Long.class, DEFAULT_GOSSIP_INTERVAL_MS);
+	}
+
+	public GossipTargetStrategy getGossipTargetStrategy() {
+		String str = getValue(GOSSIP_SECTION, GOSSIP_TARGET_STRATEGY, String.class, DEFAULT_GOSSIP_TARGET_STRATEGY);
+		return GossipTargetStrategy.valueOf(str.toUpperCase());
 	}
 
 	public String getPublicKeyPath() {
