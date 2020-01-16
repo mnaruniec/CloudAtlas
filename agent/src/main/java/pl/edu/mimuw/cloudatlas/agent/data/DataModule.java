@@ -427,7 +427,8 @@ public class DataModule extends Module {
 	private ZMI createInitializedZMI(PathName pathName) {
 		ZMI zmi = new ZMI();
 		AttributesMap attrMap = zmi.getAttributes();
-		attrMap.add(ZMI.NAME_ATTR, new ValueString(pathName.getSingletonName()));
+		String name = pathName.equals(PathName.ROOT) ? null : pathName.getSingletonName();
+		attrMap.add(ZMI.NAME_ATTR, new ValueString(name));
 		attrMap.add(ZMI.LEVEL_ATTR, new ValueInt((long) pathName.getComponents().size()));
 		attrMap.add(ZMI.CARDINALITY_ATTR, new ValueInt(1L));
 		refreshOwnerAndTimestamp(zmi);

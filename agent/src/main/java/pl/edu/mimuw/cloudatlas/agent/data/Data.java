@@ -25,16 +25,16 @@ class Data {
 
 	public Data() {
 		// TODO - remove
-		{
-			try {
-				root = InterpreterUtils.createLabTestHierarchy();
-				if (root != null) {
-					generateIndex(root, new PathName(""));
-				}
-			} catch (ParseException | UnknownHostException e) {
-				e.printStackTrace();
-			}
-		}
+//		{
+//			try {
+//				root = InterpreterUtils.createLabTestHierarchy();
+//				if (root != null) {
+//					generateIndex(root, new PathName(""));
+//				}
+//			} catch (ParseException | UnknownHostException e) {
+//				e.printStackTrace();
+//			}
+//		}
 	}
 
 	// TODO - remove?
