@@ -6,6 +6,7 @@ import pl.edu.mimuw.cloudatlas.agent.common.Module;
 import pl.edu.mimuw.cloudatlas.agent.common.ModuleExecutor;
 import pl.edu.mimuw.cloudatlas.agent.data.DataModule;
 import pl.edu.mimuw.cloudatlas.agent.gossip.GossipModule;
+import pl.edu.mimuw.cloudatlas.agent.rmi.RmiModule;
 import pl.edu.mimuw.cloudatlas.agent.task.TaskModule;
 import pl.edu.mimuw.cloudatlas.agent.timer.TimerModule;
 
@@ -17,16 +18,16 @@ import java.util.concurrent.TimeUnit;
 public class AgentMain {
 	public static void main(String[] args) throws Exception {
 		// TODO
-//		if (args.length < 1) {
-//			System.out.println("usage: agent <config.ini>");
-//			System.exit(1);
-//		}
-//		AgentConfig config = new AgentConfig(new File(args[0]));
-		AgentConfig config = new AgentConfig(new File("./config/agent.ini"));
+		if (args.length < 1) {
+			System.out.println("usage: agent <config.ini>");
+			System.exit(1);
+		}
+		AgentConfig config = new AgentConfig(new File(args[0]));
+//		AgentConfig config = new AgentConfig(new File("./config/agent.ini"));
 
-//		if (System.getSecurityManager() == null) {
-//			System.setSecurityManager(new SecurityManager());
-//		}
+		if (System.getSecurityManager() == null) {
+			System.setSecurityManager(new SecurityManager());
+		}
 
 		Bus bus = null;
 		Module[] modules = null;
@@ -35,7 +36,7 @@ public class AgentMain {
 			bus = new Bus();
 			modules = new Module[]{
 					new TimerModule(bus),
-//					new RmiModule(bus),
+					new RmiModule(bus),
 					new DataModule(bus, config),
 					new CommModule(bus, config),
 					new GossipModule(bus, config),

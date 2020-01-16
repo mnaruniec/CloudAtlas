@@ -40,7 +40,7 @@ class DataModel {
 
 	// TODO - remove?
 	private void generateIndex(ZMI zmi, PathName pathName) {
-		zmiIndex.put(pathName.getName(), zmi);
+		zmiIndex.put(pathName.toString(), zmi);
 		for (ZMI son: zmi.getSons()) {
 			generateIndex(son, pathName.levelDown(son.getName()));
 		}

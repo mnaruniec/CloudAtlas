@@ -300,7 +300,7 @@ public class DataModule extends Module {
 			if (targetPath.get(depth).equals(sonName) && path.size() < targetPath.size()) {
 				getRelevantZMIs(son, zmiMap, path, targetPath);
 			} else {
-				zmiMap.put(new PathName(path).getName(), son);
+				zmiMap.put(new PathName(path).toString(), son);
 			}
 			path.removeLast();
 		}
@@ -334,7 +334,7 @@ public class DataModule extends Module {
 		for (Map.Entry<String, AttributesMap> entry : zmiMap.entrySet()) {
 			PathName pathName = new PathName(entry.getKey());
 			verifyAttributesMap(pathName, entry.getValue());
-			if (model.zmiIndex.containsKey(pathName.getName())) {
+			if (model.zmiIndex.containsKey(pathName.toString())) {
 				existingZmiMap.put(pathName, entry.getValue());
 			} else {
 				newZmiMap.put(pathName, entry.getValue());
@@ -399,7 +399,7 @@ public class DataModule extends Module {
 			if (((ValueContact) contact).getAddress() == null) {
 				throw new NullPointerException("Contact's address is null.");
 			}
-			new PathName(((ValueContact) contact).getName().getName());
+			new PathName(((ValueContact) contact).getName().toString());
 		}
 
 		for (Map.Entry<Attribute, Value> entry: attributesMap) {
@@ -410,10 +410,10 @@ public class DataModule extends Module {
 	}
 
 	private ZMI createZMIPath(PathName pathName) {
-		ZMI zmi = model.zmiIndex.get(pathName.getName());
+		ZMI zmi = model.zmiIndex.get(pathName.toString());
 		if (zmi == null) {
 			zmi = createInitializedZMI(pathName);
-			model.zmiIndex.put(pathName.getName(), zmi);
+			model.zmiIndex.put(pathName.toString(), zmi);
 
 			if (pathName.equals(PathName.ROOT)) {
 				model.root = zmi;
@@ -442,7 +442,7 @@ public class DataModule extends Module {
 	}
 
 	private void substituteZMIIfFresher(PathName pathName, AttributesMap attributesMap) {
-		long localTimestamp = model.zmiIndex.get(pathName.getName()).getTimestamp();
+		long localTimestamp = model.zmiIndex.get(pathName.toString()).getTimestamp();
 		long remoteTimestamp = ((ValueTime) attributesMap.get(ZMI.TIMESTAMP_ATTR)).getValue();
 		if (localTimestamp < remoteTimestamp) {
 			substituteZMI(pathName, attributesMap);
@@ -451,7 +451,7 @@ public class DataModule extends Module {
 
 	private void substituteZMI(PathName pathName, AttributesMap attributesMap) {
 		// get old info
-		String pathNameStr = pathName.getName();
+		String pathNameStr = pathName.toString();
 		ZMI oldZMI = model.zmiIndex.get(pathNameStr);
 		ZMI father = oldZMI.getFather();
 		List<ZMI> sons = oldZMI.getSons();
@@ -515,7 +515,7 @@ public class DataModule extends Module {
 	private void handleRmiGetZoneAttributesRequest(RmiGetZoneAttributesRequest request) {
 		RmiResponse response;
 		try {
-			ZMI zmi = model.zmiIndex.get(new PathName(request.zone).getName());
+			ZMI zmi = model.zmiIndex.get(new PathName(request.zone).toString());
 			if (zmi == null) {
 				response = new RmiResponse(
 						request,
@@ -711,7 +711,7 @@ public class DataModule extends Module {
 	private void purgeOldZones(long timestamp) {
 		PathName root = new PathName("");
 		if (model.root != null && purgeOldZones(model.root, root, timestamp)) {
-			model.zmiIndex.remove(root.getName());
+			model.zmiIndex.remove(root.toString());
 			model.root = null;
 		}
 	}
@@ -724,7 +724,7 @@ public class DataModule extends Module {
 			PathName sonPath = path.levelDown(son.getName());
 			if (purgeOldZones(son, sonPath, timestamp)) {
 				removedSons.add(son);
-				model.zmiIndex.remove(sonPath.getName());
+				model.zmiIndex.remove(sonPath.toString());
 			}
 		}
 

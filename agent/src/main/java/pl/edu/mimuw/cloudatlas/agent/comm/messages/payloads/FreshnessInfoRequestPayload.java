@@ -10,7 +10,7 @@ public final class FreshnessInfoRequestPayload extends FreshnessInfoPayload impl
 
 	public FreshnessInfoRequestPayload(PathName pathName, FreshnessInfo freshnessInfo) {
 		super(freshnessInfo);
-		this.pathName = pathName.getName();
+		this.pathName = pathName.toString();
 	}
 
 	public String getPathName() {
