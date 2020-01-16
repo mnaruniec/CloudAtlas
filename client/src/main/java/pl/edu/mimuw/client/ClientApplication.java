@@ -9,6 +9,10 @@ import org.springframework.web.bind.annotation.RestController;
 @EnableScheduling
 public class ClientApplication {
 	public static void main(String[] args) {
+		if (args.length > 0) {
+			SignerHostnameSingleton.signerHostname = args[0];
+		}
+		System.out.println("Using Signer hostname: " + SignerHostnameSingleton.signerHostname);
 		SpringApplication.run(ClientApplication.class, args);
 	}
 }

@@ -1,6 +1,7 @@
 package pl.edu.mimuw.client.services;
 
 import org.springframework.stereotype.Service;
+import pl.edu.mimuw.client.SignerHostnameSingleton;
 import pl.edu.mimuw.cloudatlas.signer.api.ISignerAPI;
 import pl.edu.mimuw.cloudatlas.signing.outputs.SignedInstallation;
 import pl.edu.mimuw.cloudatlas.signing.outputs.SignedUninstallation;
@@ -15,8 +16,7 @@ public class SignerService implements ISignerAPI {
 	private ISignerAPI signerAPI;
 
 	public SignerService() throws RemoteException, NotBoundException {
-		// TODO - config hostname
-		Registry registry = LocateRegistry.getRegistry();
+		Registry registry = LocateRegistry.getRegistry(SignerHostnameSingleton.signerHostname);
 		signerAPI = (ISignerAPI) registry.lookup("SignerAPI");
 		signerAPI.ping();
 	}
