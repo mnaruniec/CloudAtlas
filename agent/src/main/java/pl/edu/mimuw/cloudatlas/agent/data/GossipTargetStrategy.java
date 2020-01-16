@@ -7,7 +7,9 @@ import pl.edu.mimuw.cloudatlas.model.Value;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public abstract class GossipTargetStrategy {
 	public static GossipTargetStrategy createStrategy(AgentConfig.GossipTargetStrategy strategyEnum) {
@@ -71,11 +73,33 @@ public abstract class GossipTargetStrategy {
 	};
 
 	public static GossipTargetStrategy EXP_ROUND_ROBIN = new GossipTargetStrategy() {
+		Set<Integer> seen = new HashSet<>();
+		int nextLevel = 0;
 
 		@Override
 		protected int getLevel(List<Integer> levels) {
-			// TODO
-			return 0;
+			int level;
+			for (int i = 0; i < 10000000; i++) {
+				level = getNext();
+				if (levels.contains(level)) {
+					return level;
+				}
+			}
+			return levels.get(0);
+		}
+
+		private int getNext() {
+			if (nextLevel > 1024) {
+				nextLevel = 0;
+				seen.clear();
+			} else if (seen.contains(nextLevel)) {
+				seen.remove(nextLevel);
+				nextLevel++;
+			} else {
+				seen.add(nextLevel);
+				nextLevel = 0;
+			}
+			return nextLevel;
 		}
 	};
 

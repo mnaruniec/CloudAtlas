@@ -50,7 +50,6 @@ public class ReceiverThread implements Runnable {
 	}
 
 	public void timeoutTransmission(TransmissionId transmissionId) {
-		// TODO - consider lazy for debug message
 		transmissionMap.remove(transmissionId);
 	}
 
