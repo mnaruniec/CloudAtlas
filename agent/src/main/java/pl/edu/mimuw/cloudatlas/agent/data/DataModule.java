@@ -125,19 +125,23 @@ public class DataModule extends Module {
 	}
 
 	private void handleGetGossipTargetRequest(GetGossipTargetRequest request) {
-		// TODO - use actual contact
 		ValueContact target = gossipTargetStrategy.getNextTarget(gatherLevels());
-		System.out.println("Next target would be " + target);
+		bus.sendMessage(new GetGossipTargetResponse(
+				request,
+				target
+		));
+//		System.out.println("Next target would be " + target);
 
-		try {
-			bus.sendMessage(new GetGossipTargetResponse(
-					request,
-					new ValueContact(new PathName("/uw/violet07"), InetAddress.getByName("127.0.0.1"))
-			));
-		} catch (UnknownHostException e) {
-			System.out.println("Weird.");
-			e.printStackTrace();
-		}
+		// TODO
+//		try {
+//			bus.sendMessage(new GetGossipTargetResponse(
+//					request,
+//					new ValueContact(new PathName("/uw/violet07"), InetAddress.getByName("127.0.0.1"))
+//			));
+//		} catch (UnknownHostException e) {
+//			System.out.println("Weird.");
+//			e.printStackTrace();
+//		}
 	}
 
 	private List<List<List<ValueContact>>> gatherLevels() {
@@ -257,7 +261,7 @@ public class DataModule extends Module {
 			long timestamp = zmiTimestamps.get(pathName);
 
 			// TODO - remove true
-			if (timestamp < zmi.getTimestamp() || true) {
+			if (timestamp < zmi.getTimestamp()/* || true*/) {
 				attributes.put(pathName, zmi.getAttributes().clone());
 			}
 		}
@@ -273,7 +277,7 @@ public class DataModule extends Module {
 			long localTimestamp = entry.getValue().getTimestamp();
 
 			// TODO - remove true
-			if (remoteTimestamp == null || remoteTimestamp < localTimestamp || true) {
+			if (remoteTimestamp == null || remoteTimestamp < localTimestamp /*|| true*/) {
 				queryList.add(entry.getValue());
 			}
 		}
