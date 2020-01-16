@@ -258,10 +258,10 @@ public class DataModule extends Module {
 		for (Map.Entry<String, ZMI> entry: zmiMap.entrySet()) {
 			String pathName = entry.getKey();
 			ZMI zmi = entry.getValue();
-			long timestamp = zmiTimestamps.get(pathName);
+			Long timestamp = zmiTimestamps.get(pathName);
 
 			// TODO - remove true
-			if (timestamp < zmi.getTimestamp()/* || true*/) {
+			if (timestamp == null || timestamp < zmi.getTimestamp()/* || true*/) {
 				attributes.put(pathName, zmi.getAttributes().clone());
 			}
 		}
