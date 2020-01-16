@@ -178,7 +178,7 @@ public class GossipModule extends Module {
 			return;
 		}
 
-		if (machine.getMachineId() == outboundMachine.getMachineId()) {
+		if (outboundMachine != null && machine.getMachineId() == outboundMachine.getMachineId()) {
 			outboundMachine = null;
 		} else {
 			inboundMachineMap.remove(((InboundGossipMachine) machine).srcAddress);
