@@ -36,7 +36,6 @@ public class SenderThread implements Runnable {
 	@Override
 	public void run() {
 		System.out.println("Communication sender thread started.");
-		// TODO - add generic trycatch to every infinite loop
 		while (true) {
 			try {
 				OutNetworkMessage message = queue.take();
