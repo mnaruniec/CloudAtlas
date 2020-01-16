@@ -14,17 +14,16 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-class DataModel {
+class Data {
 	ZMI root;
 
-	// TODO - make index use PathName.toString
 	Map<String, ZMI> zmiIndex = new HashMap<>();
 
 	Set<ValueContact> fallbackContacts = new HashSet<>();
 
 	Map<Attribute, SignedObject> queryMap = new HashMap<>();
 
-	public DataModel() {
+	public Data() {
 		// TODO - remove
 		{
 			try {

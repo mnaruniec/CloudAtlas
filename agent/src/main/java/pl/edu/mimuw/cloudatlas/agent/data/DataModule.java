@@ -73,7 +73,7 @@ public class DataModule extends Module {
 			"SELECT to_set(random(" + CONTACTS_SAMPLE + ", unfold(" + ZMI.CONTACTS_ATTR + "))) AS " + ZMI.CONTACTS_ATTR,
 	};
 
-	private DataModel model = new DataModel();
+	private Data data = new Data();
 
 	private GossipTargetStrategy gossipTargetStrategy;
 	private SignatureVerifier signatureVerifier;
@@ -146,13 +146,13 @@ public class DataModule extends Module {
 			output.add(new ArrayList<>());
 		}
 
-		List<ValueContact> fallbacks = getFilteredContacts(model.fallbackContacts);
+		List<ValueContact> fallbacks = getFilteredContacts(data.fallbackContacts);
 		if (!fallbacks.isEmpty()) {
 			output.get(0).add(fallbacks);
 		}
 
-		if (model.root != null) {
-			gatherLevels(model.root, 0, output);
+		if (data.root != null) {
+			gatherLevels(data.root, 0, output);
 		}
 
 		return output;
@@ -220,7 +220,7 @@ public class DataModule extends Module {
 	private Map<String, Long> getQueryTimestamps() {
 		Map<String, Long> queryTimestamps = new HashMap<>();
 
-		for (Map.Entry<Attribute, SignedObject> entry: model.queryMap.entrySet()) {
+		for (Map.Entry<Attribute, SignedObject> entry: data.queryMap.entrySet()) {
 			queryTimestamps.put(entry.getKey().getName(), entry.getValue().getTimestamp());
 		}
 
@@ -268,7 +268,7 @@ public class DataModule extends Module {
 	private List<SignedObject> getQueryGossipData(FreshnessInfo remoteFreshnessInfo) {
 		List<SignedObject> queryList = new ArrayList<>();
 
-		for (Map.Entry<Attribute, SignedObject> entry: model.queryMap.entrySet()) {
+		for (Map.Entry<Attribute, SignedObject> entry: data.queryMap.entrySet()) {
 			Long remoteTimestamp = remoteFreshnessInfo.getQueryTimestamps().get(entry.getKey().getName());
 			long localTimestamp = entry.getValue().getTimestamp();
 
@@ -283,8 +283,8 @@ public class DataModule extends Module {
 
 	private Map<String, ZMI> getRelevantZMIs(PathName target) {
 		Map<String, ZMI> zmiMap = new HashMap<>();
-		if (model.root != null) {
-			getRelevantZMIs(model.root, zmiMap, new LinkedList<>(), new ArrayList<>(target.getComponents()));
+		if (data.root != null) {
+			getRelevantZMIs(data.root, zmiMap, new LinkedList<>(), new ArrayList<>(target.getComponents()));
 		}
 		return zmiMap;
 	}
@@ -334,7 +334,7 @@ public class DataModule extends Module {
 		for (Map.Entry<String, AttributesMap> entry : zmiMap.entrySet()) {
 			PathName pathName = new PathName(entry.getKey());
 			verifyAttributesMap(pathName, entry.getValue());
-			if (model.zmiIndex.containsKey(pathName.toString())) {
+			if (data.zmiIndex.containsKey(pathName.toString())) {
 				existingZmiMap.put(pathName, entry.getValue());
 			} else {
 				newZmiMap.put(pathName, entry.getValue());
@@ -363,9 +363,9 @@ public class DataModule extends Module {
 		for (SignedObject query: queryList) {
 			Attribute name = query.getPayload().getName();
 			long remoteTimestamp = query.getTimestamp();
-			SignedObject localQuery = model.queryMap.get(name);
+			SignedObject localQuery = data.queryMap.get(name);
 			if (localQuery == null || localQuery.getTimestamp() < remoteTimestamp) {
-				model.queryMap.put(name, query);
+				data.queryMap.put(name, query);
 			}
 		}
 	}
@@ -410,13 +410,13 @@ public class DataModule extends Module {
 	}
 
 	private ZMI createZMIPath(PathName pathName) {
-		ZMI zmi = model.zmiIndex.get(pathName.toString());
+		ZMI zmi = data.zmiIndex.get(pathName.toString());
 		if (zmi == null) {
 			zmi = createInitializedZMI(pathName);
-			model.zmiIndex.put(pathName.toString(), zmi);
+			data.zmiIndex.put(pathName.toString(), zmi);
 
 			if (pathName.equals(PathName.ROOT)) {
-				model.root = zmi;
+				data.root = zmi;
 			} else {
 				createZMIPath(pathName.levelUp()).addSon(zmi);
 			}
@@ -442,7 +442,7 @@ public class DataModule extends Module {
 	}
 
 	private void substituteZMIIfFresher(PathName pathName, AttributesMap attributesMap) {
-		long localTimestamp = model.zmiIndex.get(pathName.toString()).getTimestamp();
+		long localTimestamp = data.zmiIndex.get(pathName.toString()).getTimestamp();
 		long remoteTimestamp = ((ValueTime) attributesMap.get(ZMI.TIMESTAMP_ATTR)).getValue();
 		if (localTimestamp < remoteTimestamp) {
 			substituteZMI(pathName, attributesMap);
@@ -452,7 +452,7 @@ public class DataModule extends Module {
 	private void substituteZMI(PathName pathName, AttributesMap attributesMap) {
 		// get old info
 		String pathNameStr = pathName.toString();
-		ZMI oldZMI = model.zmiIndex.get(pathNameStr);
+		ZMI oldZMI = data.zmiIndex.get(pathNameStr);
 		ZMI father = oldZMI.getFather();
 		List<ZMI> sons = oldZMI.getSons();
 
@@ -469,7 +469,7 @@ public class DataModule extends Module {
 		}
 
 		// link new ZMI
-		model.zmiIndex.put(pathNameStr, newZMI);
+		data.zmiIndex.put(pathNameStr, newZMI);
 		if (father != null) {
 			father.addSon(newZMI);
 		}
@@ -508,14 +508,14 @@ public class DataModule extends Module {
 
 	private void handleRmiGetStoredZonesRequest(RmiGetStoredZonesRequest request) {
 		bus.sendMessage(new RmiGetStoredZonesResponse(
-				request, new HashSet<>(model.zmiIndex.keySet())
+				request, new HashSet<>(data.zmiIndex.keySet())
 		));
 	}
 
 	private void handleRmiGetZoneAttributesRequest(RmiGetZoneAttributesRequest request) {
 		RmiResponse response;
 		try {
-			ZMI zmi = model.zmiIndex.get(new PathName(request.zone).toString());
+			ZMI zmi = data.zmiIndex.get(new PathName(request.zone).toString());
 			if (zmi == null) {
 				response = new RmiResponse(
 						request,
@@ -607,34 +607,34 @@ public class DataModule extends Module {
 
 	private void verifyAndUpdateQuery(SignedObject signedObject) {
 		signatureVerifier.verify(signedObject);
-		SignedObject old = model.queryMap.get(signedObject.getPayload().getName());
+		SignedObject old = data.queryMap.get(signedObject.getPayload().getName());
 		if (old != null && old.getTimestamp() > signedObject.getTimestamp()) {
 			throw new IllegalArgumentException("Agent already has a fresher status of this query.");
 		}
-		model.queryMap.put(signedObject.getPayload().getName(), signedObject);
+		data.queryMap.put(signedObject.getPayload().getName(), signedObject);
 	}
 
 	private void handleRmiGetFallbackContactsRequest(RmiGetFallbackContactsRequest request) {
 		bus.sendMessage(new RmiGetFallbackContactsResponse(
-				request, new HashSet<>(model.fallbackContacts)
+				request, new HashSet<>(data.fallbackContacts)
 		));
 	}
 
 	private void handleRmiSetFallbackContactsMessage(RmiSetFallbackContactsMessage message) {
-		model.fallbackContacts = message.fallbackContacts;
+		data.fallbackContacts = message.fallbackContacts;
 	}
 
 	private void handleRefreshAttributeValuesMessage(RefreshAttributeValuesMessage message) {
 		System.out.println("Data module refreshing.");
 		Map<Attribute, Program> queries = getInstalledQueries();
-		if (model.root != null) {
-			refreshAttributeValues(model.root, queries);
+		if (data.root != null) {
+			refreshAttributeValues(data.root, queries);
 		}
 	}
 
 	private Map<Attribute, Program> getInstalledQueries() {
 		Map<Attribute, Program> queries = new HashMap<>();
-		for (Map.Entry<Attribute, SignedObject> entry : model.queryMap.entrySet()) {
+		for (Map.Entry<Attribute, SignedObject> entry : data.queryMap.entrySet()) {
 			SignedObject signedObject = entry.getValue();
 			if (signedObject.getPayload() instanceof InstallationPayload) {
 				queries.put(entry.getKey(), ((InstallationPayload) signedObject.getPayload()).getQuery());
@@ -710,9 +710,9 @@ public class DataModule extends Module {
 
 	private void purgeOldZones(long timestamp) {
 		PathName root = new PathName("");
-		if (model.root != null && purgeOldZones(model.root, root, timestamp)) {
-			model.zmiIndex.remove(root.toString());
-			model.root = null;
+		if (data.root != null && purgeOldZones(data.root, root, timestamp)) {
+			data.zmiIndex.remove(root.toString());
+			data.root = null;
 		}
 	}
 
@@ -724,7 +724,7 @@ public class DataModule extends Module {
 			PathName sonPath = path.levelDown(son.getName());
 			if (purgeOldZones(son, sonPath, timestamp)) {
 				removedSons.add(son);
-				model.zmiIndex.remove(sonPath.toString());
+				data.zmiIndex.remove(sonPath.toString());
 			}
 		}
 
