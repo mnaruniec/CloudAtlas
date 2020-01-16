@@ -46,7 +46,7 @@ public class AgentMain {
 			for (int i = 0; i < modules.length; i++) {
 				moduleExecutors[i] = new ModuleExecutor();
 				moduleExecutors[i].addModule(modules[i]);
-				bus.registerModule(modules[i].getDefaultName(), moduleExecutors[i]);
+				bus.registerModule(modules[i].getName(), moduleExecutors[i]);
 			}
 
 			for (Module module: modules) {

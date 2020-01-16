@@ -7,7 +7,7 @@ import pl.edu.mimuw.cloudatlas.agent.comm.messages.InNetworkMessage;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.local.TriggerTransmissionTimeoutMessage;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.Payload;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
-import pl.edu.mimuw.cloudatlas.agent.common.Constants;
+import pl.edu.mimuw.cloudatlas.agent.common.ModuleNames;
 import pl.edu.mimuw.cloudatlas.agent.timer.SetTimeoutMessage;
 
 import java.net.DatagramPacket;
@@ -129,8 +129,8 @@ public class Transmission {
 			}
 
 			bus.sendMessage(new InNetworkMessage(
-					Constants.DEFAULT_GOSSIP_MODULE_NAME,
-					Constants.DEFAULT_COMM_MODULE_NAME,
+					ModuleNames.GOSSIP_MODULE_NAME,
+					ModuleNames.COMM_MODULE_NAME,
 					transmissionId.address,
 					payload,
 					receiveTimestamp,
@@ -160,15 +160,15 @@ public class Transmission {
 	private void setTransmissionTimeout(long timeout) {
 		Runnable callback = () -> {
 			bus.sendMessage(new TriggerTransmissionTimeoutMessage(
-					Constants.DEFAULT_COMM_MODULE_NAME,
-					Constants.DEFAULT_TIMER_MODULE_NAME,
+					ModuleNames.COMM_MODULE_NAME,
+					ModuleNames.TIMER_MODULE_NAME,
 					transmissionId
 			));
 		};
 
 		bus.sendMessage(new SetTimeoutMessage(
-				Constants.DEFAULT_TIMER_MODULE_NAME,
-				Constants.DEFAULT_COMM_MODULE_NAME,
+				ModuleNames.TIMER_MODULE_NAME,
+				ModuleNames.COMM_MODULE_NAME,
 				callback,
 				timeout
 		));

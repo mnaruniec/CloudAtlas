@@ -10,7 +10,7 @@ import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.FreshnessInfoRequest
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.FreshnessInfoResponsePayload;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.Payload;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
-import pl.edu.mimuw.cloudatlas.agent.common.Constants;
+import pl.edu.mimuw.cloudatlas.agent.common.ModuleNames;
 import pl.edu.mimuw.cloudatlas.agent.common.Message;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.FreshnessInfo;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetFreshnessInfoRequest;
@@ -25,7 +25,6 @@ import pl.edu.mimuw.cloudatlas.gtp.GtpUtils;
 import pl.edu.mimuw.cloudatlas.model.PathName;
 
 import java.net.InetAddress;
-import java.util.Date;
 
 public class InboundGossipMachine implements GossipStateMachine {
 	private enum State {
@@ -132,8 +131,8 @@ public class InboundGossipMachine implements GossipStateMachine {
 
 			state = State.ExpectLocalFreshnessInfo;
 			bus.sendMessage(new GetFreshnessInfoRequest(
-					Constants.DEFAULT_DATA_MODULE_NAME,
-					Constants.DEFAULT_GOSSIP_MODULE_NAME,
+					ModuleNames.DATA_MODULE_NAME,
+					ModuleNames.GOSSIP_MODULE_NAME,
 					getMachineId(),
 					srcPathName
 			));
@@ -194,8 +193,8 @@ public class InboundGossipMachine implements GossipStateMachine {
 
 			state = State.ExpectLocalData;
 			bus.sendMessage(new GetGossipDataRequest(
-					Constants.DEFAULT_DATA_MODULE_NAME,
-					Constants.DEFAULT_GOSSIP_MODULE_NAME,
+					ModuleNames.DATA_MODULE_NAME,
+					ModuleNames.GOSSIP_MODULE_NAME,
 					getMachineId(),
 					srcPathName,
 					remoteFreshnessInfo
@@ -221,8 +220,8 @@ public class InboundGossipMachine implements GossipStateMachine {
 		}
 
 		bus.sendMessage(new UpdateWithGossipDataMessage(
-				Constants.DEFAULT_DATA_MODULE_NAME,
-				Constants.DEFAULT_GOSSIP_MODULE_NAME,
+				ModuleNames.DATA_MODULE_NAME,
+				ModuleNames.GOSSIP_MODULE_NAME,
 				remoteGossipData
 		));
 
@@ -252,15 +251,15 @@ public class InboundGossipMachine implements GossipStateMachine {
 	private void schedulePurge() {
 		Runnable callback = () -> {
 			bus.sendMessage(new PurgeGossipMachineMessage(
-					Constants.DEFAULT_GOSSIP_MODULE_NAME,
-					Constants.DEFAULT_TIMER_MODULE_NAME,
+					ModuleNames.GOSSIP_MODULE_NAME,
+					ModuleNames.TIMER_MODULE_NAME,
 					machineId
 			));
 		};
 
 		bus.sendMessage(new SetTimeoutMessage(
-				Constants.DEFAULT_TIMER_MODULE_NAME,
-				Constants.DEFAULT_GOSSIP_MODULE_NAME,
+				ModuleNames.TIMER_MODULE_NAME,
+				ModuleNames.GOSSIP_MODULE_NAME,
 				callback,
 				purgeTimeoutMs
 		));
@@ -268,8 +267,8 @@ public class InboundGossipMachine implements GossipStateMachine {
 
 	private OutNetworkMessage createNetworkMessage(Payload payload) {
 		return new OutNetworkMessage(
-				Constants.DEFAULT_COMM_MODULE_NAME,
-				Constants.DEFAULT_GOSSIP_MODULE_NAME,
+				ModuleNames.COMM_MODULE_NAME,
+				ModuleNames.GOSSIP_MODULE_NAME,
 				srcAddress,
 				payload
 		);

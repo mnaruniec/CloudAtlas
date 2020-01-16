@@ -2,7 +2,7 @@ package pl.edu.mimuw.cloudatlas.agent.task;
 
 import pl.edu.mimuw.cloudatlas.agent.AgentConfig;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
-import pl.edu.mimuw.cloudatlas.agent.common.Constants;
+import pl.edu.mimuw.cloudatlas.agent.common.ModuleNames;
 import pl.edu.mimuw.cloudatlas.agent.common.Message;
 import pl.edu.mimuw.cloudatlas.agent.common.Module;
 import pl.edu.mimuw.cloudatlas.agent.task.messages.PurgeOldZonesMessage;
@@ -24,8 +24,8 @@ public class TaskModule extends Module {
 	}
 
 	@Override
-	public String getDefaultName() {
-		return Constants.DEFAULT_TASK_MODULE_NAME;
+	public String getName() {
+		return ModuleNames.TASK_MODULE_NAME;
 	}
 
 	@Override
@@ -47,8 +47,8 @@ public class TaskModule extends Module {
 
 	private void handleTriggerRefreshAttributeValuesMessage(TriggerRefreshAttributeValuesMessage message) {
 		bus.sendMessage(new RefreshAttributeValuesMessage(
-				Constants.DEFAULT_DATA_MODULE_NAME,
-				getDefaultName()
+				ModuleNames.DATA_MODULE_NAME,
+				getName()
 		));
 
 		setRefreshTimeout();
@@ -58,8 +58,8 @@ public class TaskModule extends Module {
 		long timestamp = new Date().getTime() - purgeIntervalMs;
 
 		bus.sendMessage(new PurgeOldZonesMessage(
-				Constants.DEFAULT_DATA_MODULE_NAME,
-				getDefaultName(),
+				ModuleNames.DATA_MODULE_NAME,
+				getName(),
 				timestamp
 		));
 
@@ -69,14 +69,14 @@ public class TaskModule extends Module {
 	private void setRefreshTimeout() {
 		Runnable sendTrigger = () -> {
 			bus.sendMessage(new TriggerRefreshAttributeValuesMessage(
-					getDefaultName(),
-					Constants.DEFAULT_TIMER_MODULE_NAME
+					getName(),
+					ModuleNames.TIMER_MODULE_NAME
 			));
 		};
 
 		bus.sendMessage(new SetTimeoutMessage(
-				Constants.DEFAULT_TIMER_MODULE_NAME,
-				getDefaultName(),
+				ModuleNames.TIMER_MODULE_NAME,
+				getName(),
 				sendTrigger,
 				refreshIntervalMs
 		));
@@ -85,14 +85,14 @@ public class TaskModule extends Module {
 	private void setPurgeTimeout() {
 		Runnable sendTrigger = () -> {
 			bus.sendMessage(new TriggerPurgeOldZonesMessage(
-					getDefaultName(),
-					Constants.DEFAULT_TIMER_MODULE_NAME
+					getName(),
+					ModuleNames.TIMER_MODULE_NAME
 			));
 		};
 
 		bus.sendMessage(new SetTimeoutMessage(
-				Constants.DEFAULT_TIMER_MODULE_NAME,
-				getDefaultName(),
+				ModuleNames.TIMER_MODULE_NAME,
+				getName(),
 				sendTrigger,
 				purgeIntervalMs
 		));

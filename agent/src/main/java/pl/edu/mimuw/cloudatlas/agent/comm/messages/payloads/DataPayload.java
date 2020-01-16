@@ -2,7 +2,7 @@ package pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads;
 
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GossipData;
 
-public abstract class DataPayload extends Payload {
+public abstract class DataPayload implements Payload {
 	private GossipData gossipData;
 
 	protected DataPayload() {}

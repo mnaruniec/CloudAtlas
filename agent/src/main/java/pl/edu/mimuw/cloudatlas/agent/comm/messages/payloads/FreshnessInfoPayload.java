@@ -2,7 +2,7 @@ package pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads;
 
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.FreshnessInfo;
 
-public abstract class FreshnessInfoPayload extends Payload {
+public abstract class FreshnessInfoPayload implements Payload {
 	private FreshnessInfo freshnessInfo;
 
 	protected FreshnessInfoPayload() {}

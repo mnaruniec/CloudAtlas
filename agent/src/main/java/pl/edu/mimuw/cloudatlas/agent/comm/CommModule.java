@@ -7,7 +7,7 @@ import pl.edu.mimuw.cloudatlas.agent.comm.messages.OutNetworkMessage;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.local.TriggerTransmissionTimeoutMessage;
 import pl.edu.mimuw.cloudatlas.agent.comm.receiver.ReceiverThread;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
-import pl.edu.mimuw.cloudatlas.agent.common.Constants;
+import pl.edu.mimuw.cloudatlas.agent.common.ModuleNames;
 import pl.edu.mimuw.cloudatlas.agent.common.Message;
 import pl.edu.mimuw.cloudatlas.agent.common.Module;
 
@@ -45,8 +45,8 @@ public class CommModule extends Module {
 	}
 
 	@Override
-	public String getDefaultName() {
-		return Constants.DEFAULT_COMM_MODULE_NAME;
+	public String getName() {
+		return ModuleNames.COMM_MODULE_NAME;
 	}
 
 	@Override

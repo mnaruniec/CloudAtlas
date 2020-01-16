@@ -7,7 +7,7 @@ public abstract class Module {
 		this.bus = bus;
 	}
 
-	public abstract String getDefaultName();
+	public abstract String getName();
 
 	// should be run after all modules are registered, but before executors are started
 	public void init() throws Exception {

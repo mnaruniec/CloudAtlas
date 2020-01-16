@@ -10,7 +10,7 @@ import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.FreshnessInfoRequest
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.FreshnessInfoResponsePayload;
 import pl.edu.mimuw.cloudatlas.agent.comm.messages.payloads.Payload;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
-import pl.edu.mimuw.cloudatlas.agent.common.Constants;
+import pl.edu.mimuw.cloudatlas.agent.common.ModuleNames;
 import pl.edu.mimuw.cloudatlas.agent.common.Message;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.FreshnessInfo;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetFreshnessInfoRequest;
@@ -139,8 +139,8 @@ public class OutboundGossipMachine implements GossipStateMachine {
 			target = response.contact;
 			state = State.ExpectLocalFreshnessInfo;
 			bus.sendMessage(new GetFreshnessInfoRequest(
-					Constants.DEFAULT_DATA_MODULE_NAME,
-					Constants.DEFAULT_GOSSIP_MODULE_NAME,
+					ModuleNames.DATA_MODULE_NAME,
+					ModuleNames.GOSSIP_MODULE_NAME,
 					machineId,
 					target.getName()
 			));
@@ -196,8 +196,8 @@ public class OutboundGossipMachine implements GossipStateMachine {
 
 			state = State.ExpectLocalData;
 			bus.sendMessage(new GetGossipDataRequest(
-					Constants.DEFAULT_DATA_MODULE_NAME,
-					Constants.DEFAULT_GOSSIP_MODULE_NAME,
+					ModuleNames.DATA_MODULE_NAME,
+					ModuleNames.GOSSIP_MODULE_NAME,
 					getMachineId(),
 					target.getName(),
 					remoteFreshnessInfo
@@ -257,8 +257,8 @@ public class OutboundGossipMachine implements GossipStateMachine {
 			finish();
 
 			bus.sendMessage(new UpdateWithGossipDataMessage(
-					Constants.DEFAULT_DATA_MODULE_NAME,
-					Constants.DEFAULT_GOSSIP_MODULE_NAME,
+					ModuleNames.DATA_MODULE_NAME,
+					ModuleNames.GOSSIP_MODULE_NAME,
 					remoteGossipData
 			));
 		}
@@ -287,8 +287,8 @@ public class OutboundGossipMachine implements GossipStateMachine {
 
 	private OutNetworkMessage createNetworkMessage(Payload payload) {
 		return new OutNetworkMessage(
-				Constants.DEFAULT_COMM_MODULE_NAME,
-				Constants.DEFAULT_GOSSIP_MODULE_NAME,
+				ModuleNames.COMM_MODULE_NAME,
+				ModuleNames.GOSSIP_MODULE_NAME,
 				target.getAddress(),
 				payload
 		);
@@ -304,14 +304,14 @@ public class OutboundGossipMachine implements GossipStateMachine {
 	private void rescheduleGossip() {
 		Runnable callback = () -> {
 			bus.sendMessage(new InitiateGossipMessage(
-					Constants.DEFAULT_GOSSIP_MODULE_NAME,
-					Constants.DEFAULT_TIMER_MODULE_NAME
+					ModuleNames.GOSSIP_MODULE_NAME,
+					ModuleNames.TIMER_MODULE_NAME
 			));
 		};
 
 		bus.sendMessage(new SetTimeoutMessage(
-				Constants.DEFAULT_TIMER_MODULE_NAME,
-				Constants.DEFAULT_GOSSIP_MODULE_NAME,
+				ModuleNames.TIMER_MODULE_NAME,
+				ModuleNames.GOSSIP_MODULE_NAME,
 				callback,
 				gossipIntervalMs,
 				creationTimestamp
@@ -325,16 +325,16 @@ public class OutboundGossipMachine implements GossipStateMachine {
 
 		Runnable callback = () -> {
 			bus.sendMessage(new RetryGossipMessage(
-					Constants.DEFAULT_GOSSIP_MODULE_NAME,
-					Constants.DEFAULT_TIMER_MODULE_NAME,
+					ModuleNames.GOSSIP_MODULE_NAME,
+					ModuleNames.TIMER_MODULE_NAME,
 					machineId,
 					left - 1
 			));
 		};
 
 		bus.sendMessage(new SetTimeoutMessage(
-				Constants.DEFAULT_TIMER_MODULE_NAME,
-				Constants.DEFAULT_GOSSIP_MODULE_NAME,
+				ModuleNames.TIMER_MODULE_NAME,
+				ModuleNames.GOSSIP_MODULE_NAME,
 				callback,
 				retryIntervalMs
 		));
@@ -343,15 +343,15 @@ public class OutboundGossipMachine implements GossipStateMachine {
 	private void schedulePurge() {
 		Runnable callback = () -> {
 			bus.sendMessage(new PurgeGossipMachineMessage(
-					Constants.DEFAULT_GOSSIP_MODULE_NAME,
-					Constants.DEFAULT_TIMER_MODULE_NAME,
+					ModuleNames.GOSSIP_MODULE_NAME,
+					ModuleNames.TIMER_MODULE_NAME,
 					machineId
 			));
 		};
 
 		bus.sendMessage(new SetTimeoutMessage(
-				Constants.DEFAULT_TIMER_MODULE_NAME,
-				Constants.DEFAULT_GOSSIP_MODULE_NAME,
+				ModuleNames.TIMER_MODULE_NAME,
+				ModuleNames.GOSSIP_MODULE_NAME,
 				callback,
 				purgeTimeoutMs
 		));

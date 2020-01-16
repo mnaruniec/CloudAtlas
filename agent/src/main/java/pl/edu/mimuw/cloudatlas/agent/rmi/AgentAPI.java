@@ -2,7 +2,7 @@ package pl.edu.mimuw.cloudatlas.agent.rmi;
 
 import pl.edu.mimuw.cloudatlas.agent.rmi.api.IAgentAPI;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
-import pl.edu.mimuw.cloudatlas.agent.common.Constants;
+import pl.edu.mimuw.cloudatlas.agent.common.ModuleNames;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetFallbackContactsRequest;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetFallbackContactsResponse;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiGetStoredZonesRequest;
@@ -48,8 +48,8 @@ public class AgentAPI implements IAgentAPI {
 	@Override
 	public Set<String> getStoredZones() throws RemoteException {
 		RmiMessage request = new RmiGetStoredZonesRequest(
-				Constants.DEFAULT_DATA_MODULE_NAME,
-				Constants.DEFAULT_RMI_MODULE_NAME,
+				ModuleNames.DATA_MODULE_NAME,
+				ModuleNames.RMI_MODULE_NAME,
 				getNextRequestId()
 		);
 		return sendAndReceive(request, RmiGetStoredZonesResponse.class).zones;
@@ -58,8 +58,8 @@ public class AgentAPI implements IAgentAPI {
 	@Override
 	public Map<String, Value> getZoneAttributes(String zone) throws RemoteException {
 		RmiMessage request = new RmiGetZoneAttributesRequest(
-				Constants.DEFAULT_DATA_MODULE_NAME,
-				Constants.DEFAULT_RMI_MODULE_NAME,
+				ModuleNames.DATA_MODULE_NAME,
+				ModuleNames.RMI_MODULE_NAME,
 				getNextRequestId(),
 				zone
 		);
@@ -69,8 +69,8 @@ public class AgentAPI implements IAgentAPI {
 	@Override
 	public void upsertZoneAttributes(String zone, Map<String, Value> attributes) throws RemoteException {
 		RmiMessage request = new RmiUpsertZoneAttributesRequest(
-				Constants.DEFAULT_DATA_MODULE_NAME,
-				Constants.DEFAULT_RMI_MODULE_NAME,
+				ModuleNames.DATA_MODULE_NAME,
+				ModuleNames.RMI_MODULE_NAME,
 				getNextRequestId(),
 				zone,
 				attributes
@@ -82,8 +82,8 @@ public class AgentAPI implements IAgentAPI {
 	@Override
 	public void installQuery(SignedInstallation signedInstallation) throws RemoteException {
 		RmiMessage request = new RmiInstallQueryRequest(
-				Constants.DEFAULT_DATA_MODULE_NAME,
-				Constants.DEFAULT_RMI_MODULE_NAME,
+				ModuleNames.DATA_MODULE_NAME,
+				ModuleNames.RMI_MODULE_NAME,
 				getNextRequestId(),
 				signedInstallation
 		);
@@ -95,8 +95,8 @@ public class AgentAPI implements IAgentAPI {
 	@Override
 	public void uninstallQuery(SignedUninstallation signedUninstallation) throws RemoteException {
 		RmiMessage request = new RmiUninstallQueryRequest(
-				Constants.DEFAULT_DATA_MODULE_NAME,
-				Constants.DEFAULT_RMI_MODULE_NAME,
+				ModuleNames.DATA_MODULE_NAME,
+				ModuleNames.RMI_MODULE_NAME,
 				getNextRequestId(),
 				signedUninstallation
 		);
@@ -111,8 +111,8 @@ public class AgentAPI implements IAgentAPI {
 			throw new NullPointerException("Fallback contacts to set are null.");
 		}
 		RmiMessage message = new RmiSetFallbackContactsMessage(
-				Constants.DEFAULT_DATA_MODULE_NAME,
-				Constants.DEFAULT_RMI_MODULE_NAME,
+				ModuleNames.DATA_MODULE_NAME,
+				ModuleNames.RMI_MODULE_NAME,
 				getNextRequestId(),
 				contacts
 		);
@@ -123,8 +123,8 @@ public class AgentAPI implements IAgentAPI {
 	@Override
 	public Set<ValueContact> getFallbackContacts() throws RemoteException {
 		RmiMessage request = new RmiGetFallbackContactsRequest(
-				Constants.DEFAULT_DATA_MODULE_NAME,
-				Constants.DEFAULT_RMI_MODULE_NAME,
+				ModuleNames.DATA_MODULE_NAME,
+				ModuleNames.RMI_MODULE_NAME,
 				getNextRequestId()
 		);
 		return sendAndReceive(request, RmiGetFallbackContactsResponse.class).fallbackContacts;

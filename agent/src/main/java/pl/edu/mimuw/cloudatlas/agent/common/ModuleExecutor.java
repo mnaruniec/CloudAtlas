@@ -30,12 +30,8 @@ public class ModuleExecutor implements Runnable {
 		}
 	}
 
-	public void addModule(String name, Module module) {
-		modules.put(name, module);
-	}
-
 	public void addModule(Module module) {
-		addModule(module.getDefaultName(), module);
+		modules.put(module.getName(), module);
 	}
 
 	public void pushMessage(Message message) throws InterruptedException {

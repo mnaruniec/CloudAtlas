@@ -1,7 +1,7 @@
 package pl.edu.mimuw.cloudatlas.agent.timer;
 
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
-import pl.edu.mimuw.cloudatlas.agent.common.Constants;
+import pl.edu.mimuw.cloudatlas.agent.common.ModuleNames;
 import pl.edu.mimuw.cloudatlas.agent.common.Message;
 import pl.edu.mimuw.cloudatlas.agent.common.Module;
 
@@ -19,8 +19,8 @@ public class TimerModule extends Module {
 	}
 
 	@Override
-	public String getDefaultName() {
-		return Constants.DEFAULT_TIMER_MODULE_NAME;
+	public String getName() {
+		return ModuleNames.TIMER_MODULE_NAME;
 	}
 
 	@Override

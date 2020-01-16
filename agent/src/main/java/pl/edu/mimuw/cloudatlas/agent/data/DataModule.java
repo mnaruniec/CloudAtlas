@@ -2,7 +2,7 @@ package pl.edu.mimuw.cloudatlas.agent.data;
 
 import pl.edu.mimuw.cloudatlas.agent.AgentConfig;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
-import pl.edu.mimuw.cloudatlas.agent.common.Constants;
+import pl.edu.mimuw.cloudatlas.agent.common.ModuleNames;
 import pl.edu.mimuw.cloudatlas.agent.common.Message;
 import pl.edu.mimuw.cloudatlas.agent.common.Module;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.FreshnessInfo;
@@ -99,8 +99,8 @@ public class DataModule extends Module {
 	}
 
 	@Override
-	public String getDefaultName() {
-		return Constants.DEFAULT_DATA_MODULE_NAME;
+	public String getName() {
+		return ModuleNames.DATA_MODULE_NAME;
 	}
 
 	@Override
@@ -425,7 +425,6 @@ public class DataModule extends Module {
 	}
 
 	private ZMI createInitializedZMI(PathName pathName) {
-		// TODO - verify if no queries
 		ZMI zmi = new ZMI();
 		AttributesMap attrMap = zmi.getAttributes();
 		attrMap.add(ZMI.NAME_ATTR, new ValueString(pathName.getSingletonName()));

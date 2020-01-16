@@ -17,7 +17,7 @@ import java.util.concurrent.BlockingQueue;
 public class SenderThread implements Runnable {
 	public static final long SOCKET_CREATION_INTERVAL_MS = 1000;
 
-	public Random random = new Random();
+	private int nextTransmissionId;
 
 	private InetAddress localAddress;
 	private Kryo kryo;
@@ -29,6 +29,8 @@ public class SenderThread implements Runnable {
 		this.kryo = kryo;
 		this.queue = queue;
 		this.socket = createSocket();
+		// randomized in case server gets quickly restarted
+		this.nextTransmissionId = new Random().nextInt(Integer.MAX_VALUE) + Integer.MIN_VALUE;
 	}
 
 	@Override
@@ -121,8 +123,7 @@ public class SenderThread implements Runnable {
 	}
 
 	private int getNextTransmissionId() {
-		// TODO - consider deterministic
-		return random.nextInt();
+		return ++nextTransmissionId;
 	}
 
 	private byte[] serialize(OutNetworkMessage message) {

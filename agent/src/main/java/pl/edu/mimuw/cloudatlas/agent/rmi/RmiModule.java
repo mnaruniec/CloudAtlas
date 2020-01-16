@@ -2,7 +2,7 @@ package pl.edu.mimuw.cloudatlas.agent.rmi;
 
 import pl.edu.mimuw.cloudatlas.agent.rmi.api.IAgentAPI;
 import pl.edu.mimuw.cloudatlas.agent.common.Bus;
-import pl.edu.mimuw.cloudatlas.agent.common.Constants;
+import pl.edu.mimuw.cloudatlas.agent.common.ModuleNames;
 import pl.edu.mimuw.cloudatlas.agent.common.Message;
 import pl.edu.mimuw.cloudatlas.agent.common.Module;
 import pl.edu.mimuw.cloudatlas.agent.rmi.messages.RmiResponse;
@@ -31,8 +31,8 @@ public class RmiModule extends Module {
 	}
 
 	@Override
-	public String getDefaultName() {
-		return Constants.DEFAULT_RMI_MODULE_NAME;
+	public String getName() {
+		return ModuleNames.RMI_MODULE_NAME;
 	}
 
 	@Override
