@@ -31,6 +31,15 @@ public class AgentConfig extends IniConfig {
 	public static final String GOSSIP_INTERVAL_MS = "gossip_interval_ms";
 	public static final long DEFAULT_GOSSIP_INTERVAL_MS = 5000L;
 
+	public static final String GOSSIP_TIMEOUT_MS = "gossip_timeout_ms";
+	public static final long DEFAULT_GOSSIP_TIMEOUT_MS = 5000L;
+
+	public static final String GOSSIP_RETRY_INTERVAL_MS = "gossip_retry_interval_ms";
+	public static final long DEFAULT_GOSSIP_RETRY_INTERVAL_MS = 2000L;
+
+	public static final String GOSSIP_RETRY_LIMIT = "gossip_retry_limit";
+	public static final int DEFAULT_GOSSIP_RETRY_LIMIT = 2;
+
 	public static final String GOSSIP_TARGET_STRATEGY = "gossip_target_strategy";
 	public static final String DEFAULT_GOSSIP_TARGET_STRATEGY = "uniform_random";
 
@@ -74,6 +83,18 @@ public class AgentConfig extends IniConfig {
 
 	public Long getGossipIntervalMs() {
 		return getValue(GOSSIP_SECTION, GOSSIP_INTERVAL_MS, Long.class, DEFAULT_GOSSIP_INTERVAL_MS);
+	}
+
+	public Long getGossipTimeoutMs() {
+		return getValue(GOSSIP_SECTION, GOSSIP_TIMEOUT_MS, Long.class, DEFAULT_GOSSIP_TIMEOUT_MS);
+	}
+
+	public Long getGossipRetryIntervalMs() {
+		return getValue(GOSSIP_SECTION, GOSSIP_RETRY_INTERVAL_MS, Long.class, DEFAULT_GOSSIP_RETRY_INTERVAL_MS);
+	}
+
+	public Integer getGossipRetryLimit() {
+		return getValue(GOSSIP_SECTION, GOSSIP_RETRY_LIMIT, Integer.class, DEFAULT_GOSSIP_RETRY_LIMIT);
 	}
 
 	public GossipTargetStrategy getGossipTargetStrategy() {

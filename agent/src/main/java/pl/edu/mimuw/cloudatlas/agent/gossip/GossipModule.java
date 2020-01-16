@@ -15,6 +15,8 @@ import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipTargetRequest;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GossipMachineIdMessage;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.InitiateGossipMessage;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.OutboundGossipMachineMessage;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.PurgeGossipMachineMessage;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.RetryGossipMessage;
 import pl.edu.mimuw.cloudatlas.agent.timer.SetTimeoutMessage;
 import pl.edu.mimuw.cloudatlas.model.PathName;
 
@@ -31,11 +33,17 @@ public class GossipModule extends Module {
 
 	private PathName localPathName;
 	private long gossipIntervalMs;
+	private long gossipTimeoutMs;
+	private long gossipRetryIntervalMs;
+	private int gossipRetryLimit;
 
 	public GossipModule(Bus bus, AgentConfig config) {
 		super(bus);
 		this.localPathName = config.getPathname();
 		this.gossipIntervalMs = config.getGossipIntervalMs();
+		this.gossipTimeoutMs = config.getGossipTimeoutMs();
+		this.gossipRetryIntervalMs = config.getGossipRetryIntervalMs();
+		this.gossipRetryLimit = config.getGossipRetryLimit();
 	}
 
 	@Override
@@ -79,10 +87,13 @@ public class GossipModule extends Module {
 		long machineId = message.machineId;
 		GossipStateMachine machine = machineIdMap.get(machineId);
 		if (machine == null) {
-			System.out.println(
-					"Gossip module received message for non-existing state machine id: "
-							+ machineId + ". Ignoring."
-			);
+			// retry/timeout messages are safety net, so don't report misses
+			if (!(message instanceof RetryGossipMessage || message instanceof PurgeGossipMachineMessage)) {
+				System.out.println(
+						"Gossip module received message for non-existing state machine id: "
+								+ machineId + ". Ignoring."
+				);
+			}
 		} else {
 			passToMachine(machine, message);
 		}
@@ -115,7 +126,15 @@ public class GossipModule extends Module {
 				return;
 			}
 		}
-		outboundMachine = new OutboundGossipMachine(bus, localPathName, getNextMachineId(), gossipIntervalMs);
+		outboundMachine = new OutboundGossipMachine(
+				bus,
+				localPathName,
+				getNextMachineId(),
+				gossipIntervalMs,
+				gossipTimeoutMs,
+				gossipRetryIntervalMs,
+				gossipRetryLimit
+		);
 		machineIdMap.put(outboundMachine.machineId, outboundMachine);
 
 		bus.sendMessage(new GetGossipTargetRequest(
@@ -146,7 +165,9 @@ public class GossipModule extends Module {
 	}
 
 	private InboundGossipMachine createInboundMachine(InNetworkMessage message) {
-		InboundGossipMachine machine = new InboundGossipMachine(bus, getNextMachineId(), message.srcAddress);
+		InboundGossipMachine machine = new InboundGossipMachine(
+				bus, getNextMachineId(), message.srcAddress, gossipTimeoutMs
+		);
 		machineIdMap.put(machine.getMachineId(), machine);
 		inboundMachineMap.put(machine.srcAddress, machine);
 		return machine;

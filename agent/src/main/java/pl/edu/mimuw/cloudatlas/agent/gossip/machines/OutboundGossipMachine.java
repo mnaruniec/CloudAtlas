@@ -20,11 +20,15 @@ import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipDataResponse;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipTargetResponse;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GossipData;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.InitiateGossipMessage;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.PurgeGossipMachineMessage;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.RetryGossipMessage;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.UpdateWithGossipDataMessage;
 import pl.edu.mimuw.cloudatlas.agent.timer.SetTimeoutMessage;
 import pl.edu.mimuw.cloudatlas.gtp.GtpUtils;
 import pl.edu.mimuw.cloudatlas.model.PathName;
 import pl.edu.mimuw.cloudatlas.model.ValueContact;
+
+import java.util.Date;
 
 public class OutboundGossipMachine implements GossipStateMachine {
 	private enum State {
@@ -47,16 +51,26 @@ public class OutboundGossipMachine implements GossipStateMachine {
 	// says how much remote clock is ahead of local clock
 	private long dT;
 
+	private long creationTimestamp = new Date().getTime();
 	public final long machineId;
-	public final long gossipIntervalMs;
 	public final PathName localPathName;
 	private Bus bus;
 
-	public OutboundGossipMachine(Bus bus, PathName localPathName, long machineId, long gossipIntervalMs) {
+	public final long gossipIntervalMs;
+	public final long purgeTimeoutMs;
+	public final long retryIntervalMs;
+	public final int retryLimit;
+
+	public OutboundGossipMachine(Bus bus, PathName localPathName, long machineId,
+								 long gossipIntervalMs, long purgeTimeoutMs, long retryIntervalMs, int retryLimit) {
 		this.bus = bus;
 		this.localPathName = localPathName;
 		this.machineId = machineId;
 		this.gossipIntervalMs = gossipIntervalMs;
+		this.purgeTimeoutMs = purgeTimeoutMs;
+		this.retryIntervalMs = retryIntervalMs;
+		this.retryLimit = retryLimit;
+		schedulePurge();
 	}
 
 	@Override
@@ -78,6 +92,10 @@ public class OutboundGossipMachine implements GossipStateMachine {
 				handleGetFreshnessInfoResponse((GetFreshnessInfoResponse) message);
 			} else if (message instanceof GetGossipDataResponse) {
 				handleGetGossipDataResponse((GetGossipDataResponse) message);
+			} else if (message instanceof PurgeGossipMachineMessage) {
+				handlePurgeGossipMachineMessage((PurgeGossipMachineMessage) message);
+			} else if (message instanceof RetryGossipMessage) {
+				handleRetryGossipMessage((RetryGossipMessage) message);
 			} else if (message instanceof InNetworkMessage) {
 				handleInNetworkMessage((InNetworkMessage) message);
 			} else {
@@ -91,6 +109,11 @@ public class OutboundGossipMachine implements GossipStateMachine {
 	}
 
 	private void handleInNetworkMessage(InNetworkMessage message) {
+		if (target == null || !message.srcAddress.equals(target.getAddress())) {
+			System.out.println("OutboundGossipMachine received network message from unexpected address. Ignoring.");
+			return;
+		}
+
 		if (message.payload instanceof FreshnessInfoResponsePayload) {
 			handleNetworkFreshnessInfoResponse(message);
 		} else if (message.payload instanceof DataResponsePayload) {
@@ -136,12 +159,10 @@ public class OutboundGossipMachine implements GossipStateMachine {
 			System.out.println("Received null as local freshness info. Finishing gossip.");
 			finish();
 		} else {
-			// TODO - schedule resending packets
+			scheduleRetry(retryLimit);
 
 			state = State.ExpectRemoteFreshnessInfo;
-			bus.sendMessage(createNetworkMessage(
-					new FreshnessInfoRequestPayload(localPathName, localFreshnessInfo)
-			));
+			sendLocalFreshnessInfo();
 		}
 	}
 
@@ -243,6 +264,27 @@ public class OutboundGossipMachine implements GossipStateMachine {
 		}
 	}
 
+	private void handlePurgeGossipMachineMessage(PurgeGossipMachineMessage message) {
+		System.out.println("Purging OutboundGossipMachine " + machineId + ".");
+		finish();
+	}
+
+	private void handleRetryGossipMessage(RetryGossipMessage message) {
+		if (state != State.ExpectRemoteFreshnessInfo) {
+			return;
+		}
+
+		System.out.println("Retrying sending initial gossip datagram.");
+		scheduleRetry(message.left);
+		sendLocalFreshnessInfo();
+	}
+
+	private void sendLocalFreshnessInfo() {
+		bus.sendMessage(createNetworkMessage(
+				new FreshnessInfoRequestPayload(localPathName, localFreshnessInfo)
+		));
+	}
+
 	private OutNetworkMessage createNetworkMessage(Payload payload) {
 		return new OutNetworkMessage(
 				Constants.DEFAULT_COMM_MODULE_NAME,
@@ -271,7 +313,47 @@ public class OutboundGossipMachine implements GossipStateMachine {
 				Constants.DEFAULT_TIMER_MODULE_NAME,
 				Constants.DEFAULT_GOSSIP_MODULE_NAME,
 				callback,
-				gossipIntervalMs
+				gossipIntervalMs,
+				creationTimestamp
+		));
+	}
+
+	private void scheduleRetry(int left) {
+		if (left < 1) {
+			return;
+		}
+
+		Runnable callback = () -> {
+			bus.sendMessage(new RetryGossipMessage(
+					Constants.DEFAULT_GOSSIP_MODULE_NAME,
+					Constants.DEFAULT_TIMER_MODULE_NAME,
+					machineId,
+					left - 1
+			));
+		};
+
+		bus.sendMessage(new SetTimeoutMessage(
+				Constants.DEFAULT_TIMER_MODULE_NAME,
+				Constants.DEFAULT_GOSSIP_MODULE_NAME,
+				callback,
+				retryIntervalMs
+		));
+	}
+
+	private void schedulePurge() {
+		Runnable callback = () -> {
+			bus.sendMessage(new PurgeGossipMachineMessage(
+					Constants.DEFAULT_GOSSIP_MODULE_NAME,
+					Constants.DEFAULT_TIMER_MODULE_NAME,
+					machineId
+			));
+		};
+
+		bus.sendMessage(new SetTimeoutMessage(
+				Constants.DEFAULT_TIMER_MODULE_NAME,
+				Constants.DEFAULT_GOSSIP_MODULE_NAME,
+				callback,
+				purgeTimeoutMs
 		));
 	}
 }

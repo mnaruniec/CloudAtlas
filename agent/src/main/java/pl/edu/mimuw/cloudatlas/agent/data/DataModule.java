@@ -401,6 +401,12 @@ public class DataModule extends Module {
 			}
 			new PathName(((ValueContact) contact).getName().getName());
 		}
+
+		for (Map.Entry<Attribute, Value> entry: attributesMap) {
+			if (Attribute.isQuery(entry.getKey())) {
+				throw new IllegalArgumentException("Query attributes are forbidden.");
+			}
+		}
 	}
 
 	private ZMI createZMIPath(PathName pathName) {

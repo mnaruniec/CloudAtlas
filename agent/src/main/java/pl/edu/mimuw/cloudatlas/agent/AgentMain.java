@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 public class AgentMain {
 	public static void main(String[] args) throws Exception {
+		// TODO
 //		if (args.length < 1) {
 //			System.out.println("usage: agent <config.ini>");
 //			System.exit(1);

@@ -18,17 +18,14 @@ import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetFreshnessInfoResponse;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipDataRequest;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GetGossipDataResponse;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.GossipData;
+import pl.edu.mimuw.cloudatlas.agent.gossip.messages.PurgeGossipMachineMessage;
 import pl.edu.mimuw.cloudatlas.agent.gossip.messages.UpdateWithGossipDataMessage;
+import pl.edu.mimuw.cloudatlas.agent.timer.SetTimeoutMessage;
 import pl.edu.mimuw.cloudatlas.gtp.GtpUtils;
-import pl.edu.mimuw.cloudatlas.model.AttributesMap;
 import pl.edu.mimuw.cloudatlas.model.PathName;
-import pl.edu.mimuw.cloudatlas.model.ValueTime;
-import pl.edu.mimuw.cloudatlas.model.ZMI;
 
 import java.net.InetAddress;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.Date;
 
 public class InboundGossipMachine implements GossipStateMachine {
 	private enum State {
@@ -56,10 +53,14 @@ public class InboundGossipMachine implements GossipStateMachine {
 	public final InetAddress srcAddress;
 	private PathName srcPathName;
 
-	public InboundGossipMachine(Bus bus, long machineId, InetAddress srcAddress) {
+	private long purgeTimeoutMs;
+
+	public InboundGossipMachine(Bus bus, long machineId, InetAddress srcAddress, long purgeTimeoutMs) {
 		this.bus = bus;
 		this.machineId = machineId;
 		this.srcAddress = srcAddress;
+		this.purgeTimeoutMs = purgeTimeoutMs;
+		schedulePurge();
 	}
 
 	@Override
@@ -79,6 +80,8 @@ public class InboundGossipMachine implements GossipStateMachine {
 				handleGetFreshnessInfoResponse((GetFreshnessInfoResponse) message);
 			} else if (message instanceof GetGossipDataResponse) {
 				handleGetGossipDataResponse((GetGossipDataResponse) message);
+			} else if (message instanceof PurgeGossipMachineMessage) {
+				handlePurgeGossipMachineMessage((PurgeGossipMachineMessage) message);
 			} else if (message instanceof InNetworkMessage) {
 				handleInNetworkMessage((InNetworkMessage) message);
 			} else {
@@ -239,6 +242,28 @@ public class InboundGossipMachine implements GossipStateMachine {
 					new DataResponsePayload(localGossipData)
 			));
 		}
+	}
+
+	private void handlePurgeGossipMachineMessage(PurgeGossipMachineMessage message) {
+		System.out.println("Purging InboundGossipMachine " + machineId + ".");
+		finish();
+	}
+
+	private void schedulePurge() {
+		Runnable callback = () -> {
+			bus.sendMessage(new PurgeGossipMachineMessage(
+					Constants.DEFAULT_GOSSIP_MODULE_NAME,
+					Constants.DEFAULT_TIMER_MODULE_NAME,
+					machineId
+			));
+		};
+
+		bus.sendMessage(new SetTimeoutMessage(
+				Constants.DEFAULT_TIMER_MODULE_NAME,
+				Constants.DEFAULT_GOSSIP_MODULE_NAME,
+				callback,
+				purgeTimeoutMs
+		));
 	}
 
 	private OutNetworkMessage createNetworkMessage(Payload payload) {
