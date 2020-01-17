@@ -422,7 +422,9 @@ public class DataModule extends Module {
 			if (pathName.equals(PathName.ROOT)) {
 				data.root = zmi;
 			} else {
-				createZMIPath(pathName.levelUp()).addSon(zmi);
+				ZMI father = createZMIPath(pathName.levelUp());
+				father.addSon(zmi);
+				zmi.setFather(father);
 			}
 		}
 		return zmi;
