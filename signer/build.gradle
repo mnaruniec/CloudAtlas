@@ -26,7 +26,6 @@ application {
             '-Djava.rmi.server.codebase=' +
                     'file://' + buildDir + '/install/signer/lib/signer.jar' +
                     ' file://' + buildDir + '/install/signer/lib/common.jar',
-            '-Djava.rmi.server.hostname=localhost'
     ]
 }
 

@@ -18,16 +18,18 @@ import java.util.concurrent.TimeUnit;
 public class AgentMain {
 	public static void main(String[] args) throws Exception {
 		// TODO
+		System.out.println("NEW");
 		if (args.length < 1) {
 			System.out.println("usage: agent <config.ini>");
 			System.exit(1);
 		}
 		AgentConfig config = new AgentConfig(new File(args[0]));
-//		AgentConfig config = new AgentConfig(new File("./config/agent.ini"));
 
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
 		}
+
+		System.setProperty("java.rmi.server.hostname", config.getIP().getHostAddress());
 
 		Bus bus = null;
 		Module[] modules = null;

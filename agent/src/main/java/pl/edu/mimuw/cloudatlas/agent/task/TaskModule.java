@@ -14,6 +14,8 @@ import pl.edu.mimuw.cloudatlas.agent.timer.SetTimeoutMessage;
 import java.util.Date;
 
 public class TaskModule extends Module {
+	public static final long PURGE_GRANULARITY_MS = 5000L;
+
 	private long refreshIntervalMs;
 	private long purgeIntervalMs;
 
@@ -95,7 +97,7 @@ public class TaskModule extends Module {
 				ModuleNames.TIMER_MODULE_NAME,
 				getName(),
 				sendTrigger,
-				purgeIntervalMs
+				PURGE_GRANULARITY_MS
 		));
 	}
 }

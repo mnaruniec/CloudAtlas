@@ -26,8 +26,7 @@ application {
     applicationName = 'fetcher'
     mainClassName = 'pl.edu.mimuw.cloudatlas.fetcher.Fetcher'
     applicationDefaultJvmArgs = [
-            '-Djava.security.policy=./server.policy',
-            '-Djava.rmi.server.hostname=localhost'
+            '-Djava.security.policy=./server.policy'
     ]
 }
 

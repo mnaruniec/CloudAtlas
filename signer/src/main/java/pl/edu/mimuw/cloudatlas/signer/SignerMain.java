@@ -16,11 +16,12 @@ import java.security.spec.InvalidKeySpecException;
 public class SignerMain {
 	public static void main(String[] args) throws IOException, NoSuchPaddingException,
 			NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		if (args.length < 1) {
-			System.out.println("usage: signer <privateKeyFile>");
+		if (args.length < 2) {
+			System.out.println("usage: signer <privateKeyFile> <usedIP>");
 			System.exit(1);
 		}
 		String privateKeyFile = args[0];
+		System.setProperty("java.rmi.server.hostname", args[1]);
 
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());

@@ -57,6 +57,7 @@ import java.io.ByteArrayInputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -82,6 +83,7 @@ public class DataModule extends Module {
 	private PathName localPathName;
 	private InetAddress localAddress;
 	private ValueContact localContact;
+	private long purgeIntervalMs;
 
 	public DataModule(Bus bus, AgentConfig config)
 			throws Exception {
@@ -91,6 +93,7 @@ public class DataModule extends Module {
 		this.localContact = new ValueContact(localPathName, localAddress);
 		this.signatureVerifier = new SignatureVerifier(KeyReader.readPublic(config.getPublicKeyPath()));
 		this.gossipTargetStrategy = GossipTargetStrategy.createStrategy(config.getGossipTargetStrategy());
+		this.purgeIntervalMs = config.getZmiPurgeIntervalMs();
 
 		for (String query: INTERNAL_QUERIES) {
 			Yylex lex = new Yylex(new ByteArrayInputStream(query.getBytes()));
@@ -335,9 +338,16 @@ public class DataModule extends Module {
 	// last two arguments are empty "return values"
 	private void verifyZMIGossipData(Map<String, AttributesMap> zmiMap,
 									 Map<PathName, AttributesMap> newZmiMap, Map<PathName, AttributesMap> existingZmiMap) {
+		long oldestTimestamp = new Date().getTime() - purgeIntervalMs;
+
 		for (Map.Entry<String, AttributesMap> entry : zmiMap.entrySet()) {
 			PathName pathName = new PathName(entry.getKey());
 			verifyAttributesMap(pathName, entry.getValue());
+
+			if (oldestTimestamp > ((ValueTime) entry.getValue().get(ZMI.TIMESTAMP_ATTR)).getValue()) {
+				continue;
+			}
+
 			if (data.zmiIndex.containsKey(pathName.toString())) {
 				existingZmiMap.put(pathName, entry.getValue());
 			} else {
@@ -716,7 +726,7 @@ public class DataModule extends Module {
 	}
 
 	private void purgeOldZones(long timestamp) {
-		PathName root = new PathName("");
+		PathName root = PathName.ROOT;
 		if (data.root != null && purgeOldZones(data.root, root, timestamp)) {
 			data.zmiIndex.remove(root.toString());
 			data.root = null;
@@ -732,10 +742,25 @@ public class DataModule extends Module {
 			if (purgeOldZones(son, sonPath, timestamp)) {
 				removedSons.add(son);
 				data.zmiIndex.remove(sonPath.toString());
+				System.out.println("Removing son: " + sonPath.toString());
+				System.out.println("Contents: " + son);
+				System.out.println("Me: " + zmi);
+				System.out.println("Son's father: " + son.getFather());
 			}
 		}
 
+		System.out.println("Old sons: " + zmi.getSons());
 		zmi.removeSons(removedSons);
+		System.out.println("New sons: " + zmi.getSons());
+
+		System.out.println("PURGING: VISITING " + path.toString());
+
+		if (!zmi.getSons().isEmpty()) {
+			System.out.println("HAS SONS");
+		}
+		if (zmi.getTimestamp() >= timestamp) {
+			System.out.println("TOO FRESH");
+		}
 
 		return zmi.getSons().isEmpty() && zmi.getTimestamp() < timestamp;
 	}

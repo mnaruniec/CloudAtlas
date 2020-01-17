@@ -33,7 +33,6 @@ application {
             '-Djava.rmi.server.codebase=' +
                     'file://' + buildDir + '/install/agent/lib/agent.jar' +
                     ' file://' + buildDir + '/install/agent/lib/common.jar',
-            '-Djava.rmi.server.hostname=localhost'
     ]
 }
 
