@@ -22,26 +22,4 @@ class Data {
 	Set<ValueContact> fallbackContacts = new HashSet<>();
 
 	Map<Attribute, SignedObject> queryMap = new HashMap<>();
-
-	public Data() {
-		// TODO - remove
-//		{
-//			try {
-//				root = InterpreterUtils.createLabTestHierarchy();
-//				if (root != null) {
-//					generateIndex(root, new PathName(""));
-//				}
-//			} catch (ParseException | UnknownHostException e) {
-//				e.printStackTrace();
-//			}
-//		}
-	}
-
-	// TODO - remove?
-	private void generateIndex(ZMI zmi, PathName pathName) {
-		zmiIndex.put(pathName.toString(), zmi);
-		for (ZMI son: zmi.getSons()) {
-			generateIndex(son, pathName.levelDown(son.getName()));
-		}
-	}
 }

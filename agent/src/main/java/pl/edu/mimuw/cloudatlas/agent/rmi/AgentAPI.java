@@ -171,17 +171,19 @@ public class AgentAPI implements IAgentAPI {
 		} catch (ExecutionException e) {
 			Throwable cause = e.getCause();
 			if (cause instanceof RuntimeException) {
-//				System.out.println("RuntimeException in RMI module. Rethrowing to client.");
 				throw (RuntimeException) cause;
 			} else {
-				System.out.println("Unexpected future ExecutionException in RMI module. Throwing RemoteException..");
+				String msg = "Unexpected future ExecutionException in RMI module. Throwing RemoteException.";
+				System.out.println(msg);
 				e.printStackTrace();
+				throw new RemoteException(msg, e);
 			}
 		} catch (RuntimeException e) {
 			System.out.println("RuntimeException in RMI module. Rethrowing to client.");
 			throw e;
 		} catch (TimeoutException e) {
 			System.out.println("Future TimeoutException in RMI module. Throwing RemoteException.");
+			throw new RemoteException("Execution timeout.");
 		} finally {
 			futureMap.remove(id);
 		}

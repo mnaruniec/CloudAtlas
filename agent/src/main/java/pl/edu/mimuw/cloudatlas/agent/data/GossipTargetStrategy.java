@@ -119,9 +119,7 @@ public abstract class GossipTargetStrategy {
 			return null;
 		}
 
-
 		int level = getLevel(intlevels);
-		System.out.println("Chose level " + level);
 		return getFromLevel(levels.get(level));
 	}
 

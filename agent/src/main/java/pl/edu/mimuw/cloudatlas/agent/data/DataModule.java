@@ -133,18 +133,6 @@ public class DataModule extends Module {
 				request,
 				target
 		));
-//		System.out.println("Next target would be " + target);
-
-		// TODO
-//		try {
-//			bus.sendMessage(new GetGossipTargetResponse(
-//					request,
-//					new ValueContact(new PathName("/uw/violet07"), InetAddress.getByName("127.0.0.1"))
-//			));
-//		} catch (UnknownHostException e) {
-//			System.out.println("Weird.");
-//			e.printStackTrace();
-//		}
 	}
 
 	private List<List<List<ValueContact>>> gatherLevels() {
@@ -263,8 +251,7 @@ public class DataModule extends Module {
 			ZMI zmi = entry.getValue();
 			Long timestamp = zmiTimestamps.get(pathName);
 
-			// TODO - remove true
-			if (timestamp == null || timestamp < zmi.getTimestamp()/* || true*/) {
+			if (timestamp == null || timestamp < zmi.getTimestamp()) {
 				attributes.put(pathName, zmi.getAttributes().clone());
 			}
 		}
@@ -279,8 +266,7 @@ public class DataModule extends Module {
 			Long remoteTimestamp = remoteFreshnessInfo.getQueryTimestamps().get(entry.getKey().getName());
 			long localTimestamp = entry.getValue().getTimestamp();
 
-			// TODO - remove true
-			if (remoteTimestamp == null || remoteTimestamp < localTimestamp /*|| true*/) {
+			if (remoteTimestamp == null || remoteTimestamp < localTimestamp) {
 				queryList.add(entry.getValue());
 			}
 		}
@@ -314,8 +300,6 @@ public class DataModule extends Module {
 	}
 
 	private void handleUpdateWithGossipDataMessage(UpdateWithGossipDataMessage message) {
-		// TODO - remove debug prints
-		System.out.println("Updating data.");
 		Map<String, AttributesMap> zmiMap = message.gossipData.getZmiMap();
 		Map<PathName, AttributesMap> newZmiMap = new HashMap<>();
 		Map<PathName, AttributesMap> existingZmiMap = new HashMap<>();
@@ -331,8 +315,6 @@ public class DataModule extends Module {
 
 		updateWithZMIGossipData(newZmiMap, existingZmiMap);
 		updateWithQueryGossipData(message.gossipData.getQueryList());
-
-		System.out.println("Updated data.");
 	}
 
 	// last two arguments are empty "return values"
@@ -642,7 +624,6 @@ public class DataModule extends Module {
 	}
 
 	private void handleRefreshAttributeValuesMessage(RefreshAttributeValuesMessage message) {
-		System.out.println("Data module refreshing.");
 		Map<Attribute, Program> queries = getInstalledQueries();
 		if (data.root != null) {
 			refreshAttributeValues(data.root, queries);
@@ -721,7 +702,6 @@ public class DataModule extends Module {
 	}
 
 	private void handlePurgeOldZonesMessage(PurgeOldZonesMessage message) {
-		System.out.println("Data module purging.");
 		purgeOldZones(message.timestamp);
 	}
 
@@ -742,25 +722,10 @@ public class DataModule extends Module {
 			if (purgeOldZones(son, sonPath, timestamp)) {
 				removedSons.add(son);
 				data.zmiIndex.remove(sonPath.toString());
-				System.out.println("Removing son: " + sonPath.toString());
-				System.out.println("Contents: " + son);
-				System.out.println("Me: " + zmi);
-				System.out.println("Son's father: " + son.getFather());
 			}
 		}
 
-		System.out.println("Old sons: " + zmi.getSons());
 		zmi.removeSons(removedSons);
-		System.out.println("New sons: " + zmi.getSons());
-
-		System.out.println("PURGING: VISITING " + path.toString());
-
-		if (!zmi.getSons().isEmpty()) {
-			System.out.println("HAS SONS");
-		}
-		if (zmi.getTimestamp() >= timestamp) {
-			System.out.println("TOO FRESH");
-		}
 
 		return zmi.getSons().isEmpty() && zmi.getTimestamp() < timestamp;
 	}

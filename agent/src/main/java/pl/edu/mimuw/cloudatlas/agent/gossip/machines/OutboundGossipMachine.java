@@ -125,7 +125,6 @@ public class OutboundGossipMachine implements GossipStateMachine {
 	}
 
 	private void handleGetGossipTargetResponse(GetGossipTargetResponse response) {
-		System.out.println("out1");
 		if (state != State.ExpectGossipTarget) {
 			// TODO - consider finishing in these checks
 			System.out.println("Received gossip target in state: " + state + ". Ignoring.");
@@ -136,6 +135,8 @@ public class OutboundGossipMachine implements GossipStateMachine {
 			System.out.println("Received null contact as gossip target. Finishing gossip.");
 			finish();
 		} else {
+			System.out.println("Starting outbound gossip with contact: " + response.contact);
+
 			target = response.contact;
 			state = State.ExpectLocalFreshnessInfo;
 			bus.sendMessage(new GetFreshnessInfoRequest(
@@ -148,7 +149,6 @@ public class OutboundGossipMachine implements GossipStateMachine {
 	}
 
 	private void handleGetFreshnessInfoResponse(GetFreshnessInfoResponse response) {
-		System.out.println("out2");
 		if (state != State.ExpectLocalFreshnessInfo) {
 			System.out.println("Received local freshness info in state: " + state + ". Ignoring.");
 			return;
@@ -167,7 +167,6 @@ public class OutboundGossipMachine implements GossipStateMachine {
 	}
 
 	private void handleNetworkFreshnessInfoResponse(InNetworkMessage message) {
-		System.out.println("out3");
 		if (state != State.ExpectRemoteFreshnessInfo) {
 			System.out.println("Received remote freshness info in state: " + state + ". Ignoring.");
 			return;
@@ -178,19 +177,12 @@ public class OutboundGossipMachine implements GossipStateMachine {
 			System.out.println("Received null as remote freshness info. Finishing gossip.");
 			finish();
 		} else {
-			System.out.println("OutLocal ZMI freshness: " + localFreshnessInfo.getZmiTimestamps());
-			System.out.println("OutRemote ZMI freshness: " + remoteFreshnessInfo.getZmiTimestamps());
-
-			System.out.println("OutLocal query freshness: " + localFreshnessInfo.getQueryTimestamps());
-			System.out.println("OutRemote query freshness: " + remoteFreshnessInfo.getQueryTimestamps());
-
 			t2a = message.receiveTimestamp;
 			t2b = message.sendTimestamp;
 			t1b = ((FreshnessInfoResponsePayload) message.payload).getT1b();
 			t1a = ((FreshnessInfoResponsePayload) message.payload).getT1a();
 			rtd = GtpUtils.getRoundTripDelay(t2a, t2b, t1b, t1a);
 			dT = GtpUtils.getTimeOffset(t2a, t2b, rtd);
-			System.out.println("Out dT: " + dT);
 
 			remoteFreshnessInfo.adjustRemoteTimestamps(dT);
 
@@ -206,7 +198,6 @@ public class OutboundGossipMachine implements GossipStateMachine {
 	}
 
 	private void handleGetGossipDataResponse(GetGossipDataResponse response) {
-		System.out.println("out4");
 		if (state != State.ExpectLocalData) {
 			System.out.println("Received local gossip data in state: " + state + ". Ignoring.");
 			return;
@@ -239,12 +230,6 @@ public class OutboundGossipMachine implements GossipStateMachine {
 			System.out.println("Received null as remote gossip data. Finishing gossip.");
 			finish();
 		} else {
-			System.out.println("OutLocal ZMI data: " + localGossipData.getZmiMap());
-			System.out.println("OutRemote ZMI data: " + remoteGossipData.getZmiMap());
-
-			System.out.println("OutLocal query data: " + localGossipData.getQueryList());
-			System.out.println("OutRemote query data: " + remoteGossipData.getQueryList());
-
 			try {
 				remoteGossipData.adjustRemoteTimestamps(dT);
 			} catch (Exception e) {

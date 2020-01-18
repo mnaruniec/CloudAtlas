@@ -23,6 +23,7 @@ import pl.edu.mimuw.cloudatlas.agent.gossip.messages.UpdateWithGossipDataMessage
 import pl.edu.mimuw.cloudatlas.agent.timer.SetTimeoutMessage;
 import pl.edu.mimuw.cloudatlas.gtp.GtpUtils;
 import pl.edu.mimuw.cloudatlas.model.PathName;
+import pl.edu.mimuw.cloudatlas.model.ValueContact;
 
 import java.net.InetAddress;
 
@@ -51,6 +52,7 @@ public class InboundGossipMachine implements GossipStateMachine {
 
 	public final InetAddress srcAddress;
 	private PathName srcPathName;
+	private ValueContact srcContact;
 
 	private long purgeTimeoutMs;
 
@@ -105,8 +107,6 @@ public class InboundGossipMachine implements GossipStateMachine {
 	}
 
 	private void handleNetworkFreshnessInfoRequest(InNetworkMessage message) {
-		// TODO - remove debug prints
-		System.out.println("in1");
 		if (state != State.ExpectRemoteFreshnessInfo) {
 			System.out.println("Received remote freshness info in state: " + state + ". Ignoring.");
 			return;
@@ -121,6 +121,9 @@ public class InboundGossipMachine implements GossipStateMachine {
 			finish();
 			return;
 		}
+
+		srcContact = new ValueContact(srcPathName, srcAddress);
+		System.out.println("Starting inbound gossip with contact: " + srcContact);
 
 		if (remoteFreshnessInfo == null) {
 			System.out.println("Received null as remote freshness info. Finishing gossip.");
@@ -140,7 +143,6 @@ public class InboundGossipMachine implements GossipStateMachine {
 	}
 
 	private void handleGetFreshnessInfoResponse(GetFreshnessInfoResponse response) {
-		System.out.println("in2");
 		if (state != State.ExpectLocalFreshnessInfo) {
 			System.out.println("Received local freshness info in state: " + state + ". Ignoring.");
 			return;
@@ -151,12 +153,6 @@ public class InboundGossipMachine implements GossipStateMachine {
 			System.out.println("Received null as local freshness info. Finishing gossip.");
 			finish();
 		} else {
-			System.out.println("InLocal ZMI freshness: " + localFreshnessInfo.getZmiTimestamps());
-			System.out.println("InRemote ZMI freshness: " + remoteFreshnessInfo.getZmiTimestamps());
-
-			System.out.println("InLocal query freshness: " + localFreshnessInfo.getQueryTimestamps());
-			System.out.println("InRemote query freshness: " + remoteFreshnessInfo.getQueryTimestamps());
-
 			state = State.ExpectRemoteData;
 			bus.sendMessage(createNetworkMessage(
 					new FreshnessInfoResponsePayload(
@@ -169,8 +165,6 @@ public class InboundGossipMachine implements GossipStateMachine {
 	}
 
 	private void handleNetworkDataRequest(InNetworkMessage message) {
-		System.out.println("in3");
-
 		if (state != State.ExpectRemoteData) {
 			System.out.println("Received remote data in state: " + state + ". Ignoring.");
 			return;
@@ -187,7 +181,6 @@ public class InboundGossipMachine implements GossipStateMachine {
 			t2b = ((DataRequestPayload) message.payload).getT2b();
 			rtd = GtpUtils.getRoundTripDelay(t3b, t3a, t2a, t2b);
 			dT = GtpUtils.getTimeOffset(t3b, t3a, rtd);
-			System.out.println("In dT: " + dT);
 
 			remoteFreshnessInfo.adjustRemoteTimestamps(dT);
 
@@ -203,8 +196,6 @@ public class InboundGossipMachine implements GossipStateMachine {
 	}
 
 	private void handleGetGossipDataResponse(GetGossipDataResponse response) {
-		System.out.println("in4");
-
 		if (state != State.ExpectLocalData) {
 			System.out.println("Received local data in state: " + state + ". Ignoring.");
 			return;
@@ -230,12 +221,6 @@ public class InboundGossipMachine implements GossipStateMachine {
 			System.out.println("Received null as local gossip data. Finishing gossip.");
 			finish();
 		} else {
-			System.out.println("InLocal ZMI data: " + localGossipData.getZmiMap());
-			System.out.println("InRemote ZMI data: " + remoteGossipData.getZmiMap());
-
-			System.out.println("InLocal query data: " + localGossipData.getQueryList());
-			System.out.println("InRemote query data: " + remoteGossipData.getQueryList());
-
 			finish();
 			bus.sendMessage(createNetworkMessage(
 					new DataResponsePayload(localGossipData)

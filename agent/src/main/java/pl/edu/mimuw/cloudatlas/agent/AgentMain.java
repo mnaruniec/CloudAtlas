@@ -17,8 +17,6 @@ import java.util.concurrent.TimeUnit;
 
 public class AgentMain {
 	public static void main(String[] args) throws Exception {
-		// TODO
-		System.out.println("NEW");
 		if (args.length < 1) {
 			System.out.println("usage: agent <config.ini>");
 			System.exit(1);
@@ -68,9 +66,6 @@ public class AgentMain {
 		}
 		System.out.println("Executors started.");
 
-//		bus.sendMessage(new OutNetworkMessage("comm", "main", InetAddress.getByName("127.0.0.1"),
-//				new Payload() {}
-//				));
 		try {
 			while (!executorService.awaitTermination(60, TimeUnit.HOURS)) {
 				// sleep forever
