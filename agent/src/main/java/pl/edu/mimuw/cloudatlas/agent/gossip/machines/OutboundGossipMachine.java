@@ -126,7 +126,6 @@ public class OutboundGossipMachine implements GossipStateMachine {
 
 	private void handleGetGossipTargetResponse(GetGossipTargetResponse response) {
 		if (state != State.ExpectGossipTarget) {
-			// TODO - consider finishing in these checks
 			System.out.println("Received gossip target in state: " + state + ". Ignoring.");
 			return;
 		}

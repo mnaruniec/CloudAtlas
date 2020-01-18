@@ -4,7 +4,7 @@ public class GtpUtils {
 	private GtpUtils() {}
 
 	public static long getRoundTripDelay(long latestReceive, long latestSend, long oldestReceive, long oldestSend) {
-		return (latestReceive - oldestSend) - (latestSend - latestReceive);
+		return (latestReceive - oldestSend) - (latestSend - oldestReceive);
 	}
 
 	// says how much remote clock is ahead of local clock
